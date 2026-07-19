@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express'
-import { getInstallationOctokit } from '../lib/octokit'
-import { prisma } from '../lib/prisma'
-import { emitPipelineEvent, getPipelineHistory, pipelineEmitter, PipelineEvent } from '../lib/pipelineEvents'
+import { getInstallationOctokit } from '../lib/octokit.js'
+import { prisma } from '../lib/prisma.js'
+import { emitPipelineEvent, getPipelineHistory, pipelineEmitter, PipelineEvent } from '../lib/pipelineEvents.js'
 
 const router = Router()
 
