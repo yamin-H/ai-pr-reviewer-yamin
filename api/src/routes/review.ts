@@ -65,7 +65,7 @@ router.post('/:id/comments/:commentId/feedback', async (req: Request, res: Respo
 
         // Verify that review and comment exist
         const comment = await prisma.reviewComment.findUnique({
-            where: { id: commentId }
+            where: { id: commentId as string }
         });
 
         if (!comment || comment.reviewId !== reviewId) {
@@ -79,7 +79,7 @@ router.post('/:id/comments/:commentId/feedback', async (req: Request, res: Respo
                 action,
                 userId,
                 reviewId,
-                commentId
+                commentId : commentId as string
             }
         });
 
