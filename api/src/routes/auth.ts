@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import { getIronSession } from 'iron-session'
 import { sessionOptions, SessionData } from '../lib/session.js'
 import { prisma } from '../lib/prisma.js'
+import { generateJWT } from '../lib/octokit.js'
 import axios from 'axios'
 
 const router = Router()
@@ -99,18 +100,37 @@ router.get('/github/callback', async (req: Request, res: Response) => {
 
 // Step 3 — GitHub App installation callback
 // GitHub redirects here after user installs the App on their account/org.
-// URL: /auth/github/installed?installation_id=xxx&setup_action=install&login=xxx
+// URL: /auth/github/installed?installation_id=xxx&setup_action=install
+// NOTE: GitHub does NOT send `login` — we look it up via the API using the installation_id
 router.get('/github/installed', async (req: Request, res: Response) => {
-    const { installation_id, setup_action, login } = req.query
+    const { installation_id } = req.query
 
-    if (!installation_id || !login) {
+    if (!installation_id) {
         res.redirect(`${process.env.FRONTEND_URL}/install?error=missing_params`)
         return
     }
 
     try {
         const installId = Number(installation_id)
-        const orgLogin = login as string
+
+        // Look up the account login from GitHub API using a JWT
+        let orgLogin: string
+        try {
+            const installationRes = await axios.get(
+                `https://api.github.com/app/installations/${installId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${generateJWT()}`,
+                        Accept: 'application/vnd.github.v3+json'
+                    }
+                }
+            )
+            orgLogin = installationRes.data.account.login
+        } catch (e) {
+            console.error('Failed to look up installation account:', e)
+            res.redirect(`${process.env.FRONTEND_URL}/install?error=install_failed`)
+            return
+        }
 
         // Upsert the organization record with the installation ID
         const org = await prisma.organization.upsert({
@@ -129,7 +149,7 @@ router.get('/github/installed', async (req: Request, res: Response) => {
         // This is fire-and-forget — don't await it
         if (process.env.AGENT_URL) {
             axios.post(`${process.env.AGENT_URL}/onboard`, {
-                repo: orgLogin,          // The agent will list repos via the installation
+                repo: orgLogin,
                 installation_id: installId,
                 org_id: org.id
             }).catch((e: any) => {

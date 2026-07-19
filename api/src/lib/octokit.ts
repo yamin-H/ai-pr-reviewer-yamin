@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 import axios from 'axios'
 
-function generateJWT(): string {
+export function generateJWT(): string {
   // key is stored directly in env, not as a file path
   const privateKey = process.env.GITHUB_PRIVATE_KEY!.replace(/\\n/g, '\n')
 
