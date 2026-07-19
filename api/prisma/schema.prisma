@@ -1,0 +1,122 @@
+generator client {
+    provider        = "prisma-client"
+    output          = "../src/generated/prisma"
+    previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+    provider   = "postgresql"
+    extensions = [vector]
+}
+
+model Organization {
+    id             String         @id @default(cuid())
+    githubId       String         @unique
+    login          String         @unique
+    installationId Int            @unique
+    createdAt      DateTime       @default(now())
+    users          User[]
+    repos          Repo[]
+    reviews        PRReview[]
+    digests        WeeklyDigest[]
+    memoryEntries  MemoryEntry[]
+}
+
+model User {
+    id              String           @id @default(cuid())
+    githubId        String           @unique
+    login           String
+    avatarUrl       String?
+    createdAt       DateTime         @default(now())
+    orgId           String
+    org             Organization     @relation(fields: [orgId], references: [id])
+    feedbackActions FeedbackAction[]
+}
+
+model Repo {
+    id            String        @id @default(cuid())
+    githubId      String        @unique
+    name          String
+    fullName      String
+    private       Boolean       @default(false)
+    orgId         String
+    org           Organization  @relation(fields: [orgId], references: [id])
+    reviews       PRReview[]
+    memoryEntries MemoryEntry[]
+    createdAt     DateTime      @default(now())
+}
+
+model PRReview {
+    id              String           @id @default(cuid())
+    prNumber        Int
+    prTitle         String?
+    status          String           @default("pending") // pending | completed | failed
+    commentUrl      String?
+    filesReviewed   Int              @default(0)
+    commentsCount   Int              @default(0)
+    createdAt       DateTime         @default(now())
+    completedAt     DateTime?
+    repoId          String
+    repo            Repo             @relation(fields: [repoId], references: [id])
+    orgId           String
+    org             Organization     @relation(fields: [orgId], references: [id])
+    comments        ReviewComment[]
+    feedbackActions FeedbackAction[]
+}
+
+model ReviewComment {
+    id              String           @id @default(cuid())
+    filename        String
+    line            Int
+    severity        String
+    comment         String
+    confidence      Float
+    pastPrNumber    Int?
+    reviewId        String
+    review          PRReview         @relation(fields: [reviewId], references: [id])
+    createdAt       DateTime         @default(now())
+    feedbackActions FeedbackAction[]
+}
+
+model MemoryEntry {
+    id           String   @id @default(cuid())
+    content      String
+    embedding    Unsupported("vector(384)")?
+    decisionType String
+    outcome      String
+    prNumber     Int
+    filePath     String?
+    createdAt    DateTime @default(now())
+    repoId       String
+    repo         Repo     @relation(fields: [repoId], references: [id])
+    orgId        String
+    org          Organization @relation(fields: [orgId], references: [id])
+}
+
+model FeedbackAction {
+    id        String         @id @default(cuid())
+    action    String
+    createdAt DateTime       @default(now())
+    userId    String
+    user      User           @relation(fields: [userId], references: [id])
+    reviewId  String
+    review    PRReview       @relation(fields: [reviewId], references: [id])
+    commentId String?
+    comment   ReviewComment? @relation(fields: [commentId], references: [id])
+}
+
+model WeeklyDigest {
+    id              String       @id @default(cuid())
+    weekOf          DateTime
+    prsReviewed     Int
+    flagsRaised     Int
+    flagsApproved   Int
+    flagsDismissed  Int
+    topIssue        String?
+    topDismissed    String?
+    patternsLearned Int          @default(0)
+    sentAt          DateTime?
+    createdAt       DateTime     @default(now())
+    orgId           String
+    org             Organization @relation(fields: [orgId], references: [id])
+}
