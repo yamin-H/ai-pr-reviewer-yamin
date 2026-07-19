@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express'
-import { verifyWebhookSignature } from '../middleware/webhook'
-import reviewQueue from '../queues/reviewQueue'
-import { prisma } from '../lib/prisma'
+import { verifyWebhookSignature } from '../middleware/webhook.js'
+import reviewQueue from '../queues/reviewQueue.js'
+import { prisma } from '../lib/prisma.js'
 
 const router = Router()
 

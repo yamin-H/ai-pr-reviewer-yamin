@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express'
 import { getIronSession } from 'iron-session'
-import { sessionOptions, SessionData } from '../lib/session'
-import { prisma } from '../lib/prisma'
+import { sessionOptions, SessionData } from '../lib/session.js'
+import { prisma } from '../lib/prisma.js'
 import axios from 'axios'
 
 const router = Router()

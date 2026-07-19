@@ -1,8 +1,8 @@
 import { Worker } from 'bullmq'
-import connection from '../lib/redis'
-import { triggerReview } from '../services/agent'
-import { ReviewJobData } from '../queues/reviewQueue'
-import {prisma} from '../lib/prisma'
+import connection from '../lib/redis.js'
+import { triggerReview } from '../services/agent.js'
+import { ReviewJobData } from '../queues/reviewQueue.js'
+import {prisma} from '../lib/prisma.js'
 
 const worker = new Worker<ReviewJobData>(
     'review-queue',
@@ -57,7 +57,7 @@ const worker = new Worker<ReviewJobData>(
     { connection, concurrency: 3 }
 );
 
-worker.on('failed', async (job, err) => {
+worker.on('failed', async (job: any, err: any) => {
     console.error(`Job ${job?.id} failed:`, err.message)
 
     if (job?.data.job_id) {

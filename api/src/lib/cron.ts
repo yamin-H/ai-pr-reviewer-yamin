@@ -1,5 +1,5 @@
 import cron from 'node-cron'
-import digestQueue from '../queues/digestQueue'
+import digestQueue from '../queues/digestQueue.js'
 
 export function startCronJobs() {
   // Every Monday at 9:00 AM

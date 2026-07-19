@@ -1,7 +1,7 @@
 import { Worker } from 'bullmq'
-import connection from '../lib/redis'
-import { DigestJobData } from '../queues/digestQueue'
-import {prisma} from '../lib/prisma'
+import connection from '../lib/redis.js'
+import { DigestJobData } from '../queues/digestQueue.js'
+import {prisma} from '../lib/prisma.js'
 import axios from 'axios'
 
 const worker = new Worker<DigestJobData>(
@@ -28,7 +28,7 @@ const worker = new Worker<DigestJobData>(
 
             if (reviews.length === 0) continue
 
-            const flagsRaised = reviews.reduce((sum, r) => sum + r.commentsCount, 0)
+            const flagsRaised = reviews.reduce((sum: number, r: any) => sum + r.commentsCount, 0)
 
             const feedbackActions = await prisma.feedbackAction.findMany({
                 where: {
@@ -37,8 +37,8 @@ const worker = new Worker<DigestJobData>(
                 }
             })
 
-            const approved = feedbackActions.filter(f => f.action === 'approved').length
-            const dismissed = feedbackActions.filter(f => f.action === 'dismissed').length
+            const approved = feedbackActions.filter((f: any) => f.action === 'approved').length
+            const dismissed = feedbackActions.filter((f: any) => f.action === 'dismissed').length
 
             // call Python agent to generate digest summary
             const agentResponse = await axios.post(
@@ -49,9 +49,9 @@ const worker = new Worker<DigestJobData>(
                     flags_raised: flagsRaised,
                     flags_approved: approved,
                     flags_dismissed: dismissed,
-                    reviews: reviews.map(r => ({
+                    reviews: reviews.map((r: any) => ({
                         pr_number: r.prNumber,
-                        comments: r.comments.map(c => c.comment)
+                        comments: r.comments.map((c: any) => c.comment)
                     }))
                 }
             )
