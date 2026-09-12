@@ -1,5 +1,5 @@
 from app.graph.review.state import ReviewState
-from app.core.config import NODE_API_URL
+from app.core.config import NODE_API_URL, INTERNAL_SERVICE_KEY
 from app.services.progress import report_progress
 import httpx
 
@@ -17,8 +17,10 @@ async def notify_complete(state: ReviewState) -> ReviewState:
                     "comment_url": state.get('posted_urls', [None])[0],
                     "status": "completed"
                 },
+                headers={"x-internal-secret": INTERNAL_SERVICE_KEY},
                 timeout=10
             )
+
         print(f"[Node 6] Notified Node API — job {state['job_id']} complete")
     except Exception as e:
         print(f"[Node 6] Warning: failed to notify Node API: {e}")

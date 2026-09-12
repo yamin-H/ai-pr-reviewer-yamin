@@ -47,6 +47,7 @@ const worker = new Worker<ReviewJobData>(
                 status: 'completed',
                 commentUrl: result.comment_url,
                 commentsCount: result.comments_posted || 0,
+                filesReviewed: result.files_reviewed || 0,
                 completedAt: new Date()
             }
         })
@@ -54,7 +55,7 @@ const worker = new Worker<ReviewJobData>(
         console.log(`✓ Review completed for PR #${job.data.pr_number}`)
         return result
     },
-    { connection, concurrency: 3 }
+    { connection, concurrency: 3, lockDuration: 300000, stalledInterval: 60000 }
 );
 
 worker.on('failed', async (job: any, err: any) => {

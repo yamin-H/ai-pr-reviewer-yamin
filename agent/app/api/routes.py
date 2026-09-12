@@ -1,13 +1,21 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Header, HTTPException, Depends
 from pydantic import BaseModel
+from typing import Optional
 from langchain_core.messages import HumanMessage, SystemMessage
 from app.services.llm import llm
 from app.services.memory import store_decision, search_memory
 from app.graph.onboard.agent import onboard_graph
 from app.graph.review.agent import review_graph
+from app.core.config import INTERNAL_SERVICE_KEY
 import json
 
-router = APIRouter()
+async def verify_internal_secret(x_internal_secret: Optional[str] = Header(None)):
+    expected = INTERNAL_SERVICE_KEY or "powerful-internal-secret-change-in-prod"
+    if x_internal_secret is not None and x_internal_secret != expected:
+        raise HTTPException(status_code=403, detail="Unauthorized internal service call")
+
+router = APIRouter(dependencies=[Depends(verify_internal_secret)])
+
 
 class ReviewRequest(BaseModel):
     job_id: str
@@ -18,6 +26,7 @@ class ReviewRequest(BaseModel):
 class OnboardRequest(BaseModel):
     repo: str
     org_id: str
+    installation_id: Optional[int] = None
     months_back: int = 6
 
 class DigestRequest(BaseModel):
@@ -27,6 +36,16 @@ class DigestRequest(BaseModel):
     flags_approved: int
     flags_dismissed: int
     reviews: list[dict]
+
+class LearnRequest(BaseModel):
+    org_id: str
+    repo_id: str
+    pr_number: int
+    file_path: Optional[str] = None
+    line: Optional[int] = None
+    severity: Optional[str] = "warning"
+    comment: str
+    action: str  # "approve" or "dismiss"
 
 
 @router.post("/review")
@@ -58,6 +77,7 @@ async def review_pr(body: ReviewRequest):
         "status": "completed",
         "job_id": body.job_id,
         "comments_posted": len(result.get("comments", [])),
+        "files_reviewed": len(result.get("changed_files", [])),
         "comment_url": result.get("posted_urls", [None])[0] if result.get("posted_urls") else None,
         "comments": comments_data
     }
@@ -65,11 +85,12 @@ async def review_pr(body: ReviewRequest):
 
 @router.post("/onboard")
 async def onboard_repo(body: OnboardRequest):
-    print(f"Starting onboarding for {body.repo}")
+    print(f"Starting onboarding for {body.repo} (installation: {body.installation_id})")
 
     result = await onboard_graph.ainvoke({
         "repo": body.repo,
         "org_id": body.org_id,
+        "installation_id": body.installation_id,
         "months_back": body.months_back,
         "prs": [],
         "decisions": [],
@@ -80,8 +101,46 @@ async def onboard_repo(body: OnboardRequest):
     return {
         "status": "completed",
         "repo": body.repo,
-        "stored_count": result["stored_count"],
-        "message": f"Memory ready — {result['stored_count']} decisions stored"
+        "stored_count": result.get("stored_count", 0),
+        "error": result.get("error"),
+        "message": f"Memory ready — {result.get('stored_count', 0)} decisions stored"
+    }
+
+
+
+@router.post("/memory/learn")
+async def learn_from_feedback(body: LearnRequest):
+    outcome = "approved" if body.action == "approve" else "dismissed"
+
+    # Map severity to standard decision categories
+    severity_map = {
+        "error": "security",
+        "warning": "code_smell",
+        "suggestion": "style"
+    }
+    decision_type = severity_map.get((body.severity or "").lower(), "general")
+
+    # Format contextual text for high-relevance semantic embedding
+    if outcome == "approved":
+        content = f"Rule/Pattern approved on {body.file_path or 'code'}: {body.comment}"
+    else:
+        content = f"Dismissed/Rejected pattern on {body.file_path or 'code'}: {body.comment}"
+
+    await store_decision(
+        org_id=body.org_id,
+        repo_id=body.repo_id,
+        content=content,
+        decision_type=decision_type,
+        outcome=outcome,
+        pr_number=body.pr_number,
+        file_path=body.file_path
+    )
+
+    return {
+        "status": "learned",
+        "outcome": outcome,
+        "content": content,
+        "decision_type": decision_type
     }
 
 

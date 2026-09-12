@@ -30,27 +30,22 @@ export default function RepositoriesPage() {
     loadRepos();
   }, []);
 
-  const handleSyncRepo = (id: string) => {
+  const handleSyncRepo = async (id: string) => {
     setSyncingRepoId(id);
-    // Simulate repository scanning and indexing
-    setTimeout(() => {
+    try {
+      const res = await api.syncRepo(id);
+      if (res.repo) {
+        setRepos((prev) =>
+          prev.map((r) => (r.id === id ? { ...r, ...res.repo } : r))
+        );
+      }
+    } catch (err) {
+      console.error("Failed to sync repository:", err);
+    } finally {
       setSyncingRepoId(null);
-      // Increment reviews / memory counts slightly in visual simulation
-      setRepos((prev) =>
-        prev.map((r) =>
-          r.id === id
-            ? {
-                ...r,
-                _count: {
-                  reviews: r._count.reviews + 1,
-                  memoryEntries: r._count.memoryEntries + (Math.random() > 0.5 ? 1 : 0),
-                },
-              }
-            : r
-        )
-      );
-    }, 2000);
+    }
   };
+
 
   const filteredRepos = repos.filter((repo) =>
     repo.fullName.toLowerCase().includes(search.toLowerCase())

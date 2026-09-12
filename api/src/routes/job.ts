@@ -4,18 +4,25 @@ import {prisma} from '../lib/prisma.js'
 const router = Router()
 
 router.get('/latest', async (req: Request, res: Response) => {
-    const latest = await prisma.pRReview.findFirst({
-        orderBy: { createdAt: 'desc' },
-        select: {
-            id: true,
-            status: true,
-            prNumber: true,
-            prTitle: true,
-            createdAt: true,
-            repo: { select: { fullName: true } }
-        }
-    })
-    res.json({ job: latest })
+    try {
+        const orgId = (req as any).user?.orgId
+        const latest = await prisma.pRReview.findFirst({
+            where: orgId ? { orgId } : undefined,
+            orderBy: { createdAt: 'desc' },
+            select: {
+                id: true,
+                status: true,
+                prNumber: true,
+                prTitle: true,
+                createdAt: true,
+                repo: { select: { fullName: true } }
+            }
+        })
+        res.json({ job: latest })
+    } catch (err) {
+        console.error('Failed to get latest job:', err)
+        res.status(500).json({ error: 'Failed to get latest job' })
+    }
 });
 
 export default router

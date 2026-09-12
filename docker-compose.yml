@@ -1,6 +1,23 @@
 version: '3.8'
 
 services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pr_reviewer
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d pr_reviewer"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   agent:
     build: 
       context: ./agent
@@ -12,8 +29,12 @@ services:
     environment:
       - NODE_API_URL=http://api:3000
       - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/pr_reviewer?schema=public
     depends_on:
-      - redis
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
 
   api:
@@ -28,9 +49,13 @@ services:
       - FRONTEND_URL=http://localhost:3001
       - AGENT_URL=http://agent:8000
       - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/pr_reviewer?schema=public
       - PORT=3000
     depends_on:
-      - redis
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
 
   frontend:
@@ -54,3 +79,4 @@ services:
 
 volumes:
   redis_data:
+  postgres_data:

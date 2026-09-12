@@ -7,7 +7,7 @@ import reviewRoutes from './routes/review.js'
 import memoryRoutes from './routes/memory.js'
 import digestRoutes from './routes/digest.js'
 import authRoutes from './routes/auth.js'
-import internalRoutes from './routes/internal.js'
+import internalRoutes, { handlePipelineStream } from './routes/internal.js'
 import { requireAuth } from './middleware/auth.js'
 import { startCronJobs } from './lib/cron.js'
 import digestQueue from './queues/digestQueue.js'
@@ -39,7 +39,8 @@ app.use('/api/repos', requireAuth, repoRoutes)
 app.use('/api/reviews', requireAuth, reviewRoutes)
 app.use('/api/memory', requireAuth, memoryRoutes)
 app.use('/api/digest', requireAuth, digestRoutes)
-app.use('/api/jobs', jobRoutes)
+app.use('/api/jobs', requireAuth, jobRoutes)
+app.get('/api/pipeline/stream/:job_id', handlePipelineStream)
 
 app.listen(PORT, () => {
     console.log(`API server running on port ${PORT}`)

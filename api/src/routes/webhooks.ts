@@ -7,24 +7,47 @@ const router = Router()
 
 router.post('/github', verifyWebhookSignature, async (req: Request, res: Response) => {
     const event = req.headers['x-github-event'] as string
-    const payload = JSON.parse(req.body.toString())
+
+    let payload: any
+    try {
+        payload = JSON.parse(req.body.toString())
+    } catch (parseErr) {
+        console.error('Invalid JSON in webhook payload')
+        res.status(400).json({ error: 'Invalid JSON payload' })
+        return
+    }
 
     console.log(`Received GitHub event: ${event}`)
 
+    if (event === 'ping') {
+        res.status(200).json({ message: 'pong' })
+        return
+    }
+
     if (event === 'pull_request') {
+        if (!payload || !payload.repository || !payload.pull_request) {
+            res.status(200).json({ received: true, ignored: true })
+            return
+        }
+
         const action = payload.action
         const prNumber = payload.pull_request.number
         const prTitle = payload.pull_request.title
         const repo = payload.repository.full_name
         const repoGithubId = String(payload.repository.id)
         const installationId = payload.installation?.id
-        const sender = payload.sender.login
-        const orgGithubId = String(payload.repository.owner.id)
-        const orgLogin = payload.organization?.login || payload.repository.owner.login
+        const sender = payload.sender?.login || 'unknown'
+        const orgGithubId = String(payload.repository.owner?.id || 'unknown')
+        const orgLogin = payload.organization?.login || payload.repository.owner?.login || 'unknown'
 
         console.log(`PR #${prNumber} was ${action} on ${repo} by ${sender}`)
 
         if (action === 'opened' || action === 'synchronize') {
+            if (!installationId) {
+                console.warn(`Skipping PR #${prNumber} on ${repo}: missing installation_id`)
+                res.status(200).json({ received: true, ignored: 'missing installation_id' })
+                return
+            }
             try {
                 // upsert org
                 const org = await prisma.organization.upsert({

@@ -2,11 +2,13 @@ import { Router, Request, Response } from 'express'
 import { getInstallationOctokit } from '../lib/octokit.js'
 import { prisma } from '../lib/prisma.js'
 import { emitPipelineEvent, getPipelineHistory, pipelineEmitter, PipelineEvent } from '../lib/pipelineEvents.js'
+import { requireInternalAuth } from '../middleware/internalAuth.js'
 
 const router = Router()
 
-router.post('/installation-token', async (req: Request, res: Response) => {
+router.post('/installation-token', requireInternalAuth, async (req: Request, res: Response) => {
     const { installation_id } = req.body
+
 
     if (!installation_id) {
         res.status(400).json({ error: 'installation_id required' })
@@ -22,7 +24,7 @@ router.post('/installation-token', async (req: Request, res: Response) => {
     }
 });
 
-router.post('/review-complete', async (req: Request, res: Response) => {
+router.post('/review-complete', requireInternalAuth, async (req: Request, res: Response) => {
     const { job_id, comments_count, comment_url, status } = req.body
 
     if (!job_id) {
@@ -59,7 +61,7 @@ router.post('/review-complete', async (req: Request, res: Response) => {
     }
 });
 
-router.post('/pipeline-update', (req: Request, res: Response) => {
+router.post('/pipeline-update', requireInternalAuth, (req: Request, res: Response) => {
     const { job_id, node, status, message, meta } = req.body
     console.log(`[Pipeline] Received: ${node} → ${status} for job ${job_id}`)
 
@@ -83,7 +85,7 @@ router.post('/pipeline-update', (req: Request, res: Response) => {
     res.json({ ok: true })
 });
 
-router.get('/pipeline-stream/:job_id', (req: Request, res: Response) => {
+export function handlePipelineStream(req: Request, res: Response) {
     const job_id = req.params.job_id as string 
 
     res.setHeader('Content-Type', 'text/event-stream')
@@ -95,7 +97,6 @@ router.get('/pipeline-stream/:job_id', (req: Request, res: Response) => {
     for (const event of history) {
         res.write(`data: ${JSON.stringify(event)}\n\n`)
     }
-
 
     const handler = (event: PipelineEvent) => {
         res.write(`data: ${JSON.stringify(event)}\n\n`)
@@ -111,7 +112,10 @@ router.get('/pipeline-stream/:job_id', (req: Request, res: Response) => {
         clearInterval(heartbeat)
         pipelineEmitter.off(`pipeline:${job_id}`, handler)
     })
-});
+}
+
+router.get('/pipeline-stream/:job_id', handlePipelineStream)
+
 
 
 

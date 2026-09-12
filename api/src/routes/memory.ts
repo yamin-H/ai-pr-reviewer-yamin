@@ -5,21 +5,29 @@ const router = Router()
 
 router.get('/stats', async (req: Request, res: Response) => {
     try {
-        const totalEntries = await prisma.memoryEntry.count()
+        const orgId = (req as any).user?.orgId
+        const where = orgId ? { orgId } : undefined
+
+        const totalEntries = await prisma.memoryEntry.count({
+            where
+        })
 
         const byDecisionType = await prisma.memoryEntry.groupBy({
             by: ['decisionType'],
+            where,
             _count: { decisionType: true },
             orderBy: { _count: { decisionType: 'desc' } }
         })
 
         const byOutcome = await prisma.memoryEntry.groupBy({
             by: ['outcome'],
+            where,
             _count: { outcome: true }
         })
 
         const recentEntries = await prisma.memoryEntry.findMany({
-            take: 5,
+            where,
+            take: 50,
             orderBy: { createdAt: 'desc' },
             include: { repo: true }
         })

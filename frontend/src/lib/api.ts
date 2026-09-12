@@ -57,6 +57,11 @@ export const api = {
 
   getRepos: () => fetchApi<{ repos: Repo[] }>("/api/repos"),
 
+  syncRepo: (id: string) =>
+    fetchApi<{ success: boolean; stored_count: number; repo: Repo }>(`/api/repos/${id}/sync`, {
+      method: "POST",
+    }),
+
   getReviews: () => fetchApi<{ reviews: PRReview[] }>("/api/reviews"),
 
   getReview: (id: string) =>

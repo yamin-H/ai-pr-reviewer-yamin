@@ -5,7 +5,9 @@ const router = Router()
 
 router.get('/preview', async (req: Request, res: Response) => {
     try {
+        const orgId = (req as any).user?.orgId
         const digests = await prisma.weeklyDigest.findMany({
+            where: orgId ? { orgId } : undefined,
             include: { org: true },
             orderBy: { weekOf: 'desc' },
             take: 10

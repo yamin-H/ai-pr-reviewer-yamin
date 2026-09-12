@@ -317,8 +317,9 @@ export default function PipelinePage() {
     setIsLive(true);
 
     const es = new EventSource(
-      `${API_URL}/internal/pipeline-stream/${jobId}`
+      `${API_URL}/api/pipeline/stream/${jobId}`
     );
+
 
     es.onmessage = (event) => {
       // ignore heartbeat pings

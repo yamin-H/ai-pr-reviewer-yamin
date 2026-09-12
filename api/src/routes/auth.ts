@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express'
 import { getIronSession } from 'iron-session'
 import { sessionOptions, SessionData } from '../lib/session.js'
 import { prisma } from '../lib/prisma.js'
-import { generateJWT } from '../lib/octokit.js'
+import { generateJWT, getInstallationOctokit } from '../lib/octokit.js'
 import axios from 'axios'
 
 const router = Router()
@@ -87,7 +87,8 @@ router.get('/github/callback', async (req: Request, res: Response) => {
             id: user.id,
             githubId: user.githubId,
             login: user.login,
-            avatarUrl: user.avatarUrl || ''
+            avatarUrl: user.avatarUrl || '',
+            orgId: user.orgId
         }
         await session.save()
 
@@ -113,8 +114,9 @@ router.get('/github/installed', async (req: Request, res: Response) => {
     try {
         const installId = Number(installation_id)
 
-        // Look up the account login from GitHub API using a JWT
+        // Look up the account details from GitHub API using a JWT
         let orgLogin: string
+        let accountId: string = ""
         try {
             const installationRes = await axios.get(
                 `https://api.github.com/app/installations/${installId}`,
@@ -126,6 +128,7 @@ router.get('/github/installed', async (req: Request, res: Response) => {
                 }
             )
             orgLogin = installationRes.data.account.login
+            accountId = String(installationRes.data.account.id || orgLogin)
         } catch (e) {
             console.error('Failed to look up installation account:', e)
             res.redirect(`${process.env.FRONTEND_URL}/install?error=install_failed`)
@@ -135,9 +138,9 @@ router.get('/github/installed', async (req: Request, res: Response) => {
         // Upsert the organization record with the installation ID
         const org = await prisma.organization.upsert({
             where: { login: orgLogin },
-            update: { installationId: installId },
+            update: { installationId: installId, githubId: accountId },
             create: {
-                githubId: orgLogin, // will be overwritten on first webhook
+                githubId: accountId,
                 login: orgLogin,
                 installationId: installId
             }
@@ -145,17 +148,55 @@ router.get('/github/installed', async (req: Request, res: Response) => {
 
         console.log(`GitHub App installed: org=${orgLogin}, installation_id=${installId}`)
 
-        // Trigger agent onboarding asynchronously (seed memory with historical PRs)
-        // This is fire-and-forget — don't await it
-        if (process.env.AGENT_URL) {
+        // Discover and immediately sync repositories granted to this app installation
+        let installedRepos: Array<{ id: number; name: string; full_name: string; private: boolean }> = []
+        try {
+            const token = await getInstallationOctokit(installId)
+            const reposRes = await axios.get('https://api.github.com/installation/repositories', {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: 'application/vnd.github.v3+json'
+                }
+            })
+            installedRepos = reposRes.data.repositories || []
+            console.log(`Discovered ${installedRepos.length} repositories for ${orgLogin}`)
+
+            for (const r of installedRepos) {
+                await prisma.repo.upsert({
+                    where: { githubId: String(r.id) },
+                    update: {
+                        name: r.name,
+                        fullName: r.full_name,
+                        private: r.private,
+                        orgId: org.id
+                    },
+                    create: {
+                        githubId: String(r.id),
+                        name: r.name,
+                        fullName: r.full_name,
+                        private: r.private,
+                        orgId: org.id
+                    }
+                })
+            }
+        } catch (repoErr: any) {
+            console.warn('Failed to sync installation repositories from GitHub:', repoErr?.message || repoErr)
+        }
+
+        // Trigger agent onboarding for the primary discovered repo
+        if (process.env.AGENT_URL && installedRepos.length > 0) {
+            const primaryRepo = installedRepos[0]
             axios.post(`${process.env.AGENT_URL}/onboard`, {
-                repo: orgLogin,
+                repo: primaryRepo.full_name,
                 installation_id: installId,
                 org_id: org.id
+            }, {
+                headers: { 'x-internal-secret': process.env.INTERNAL_SERVICE_KEY || 'powerful-internal-secret-change-in-prod' }
             }).catch((e: any) => {
-                console.warn('Onboard agent call failed (non-fatal):', e.message)
+                console.warn(`Onboard agent call failed for ${primaryRepo.full_name}:`, e.message)
             })
         }
+
 
         // Redirect back to the frontend — tell them to sign in now
         res.redirect(`${process.env.FRONTEND_URL}/install?status=success&login=${orgLogin}`)
@@ -173,6 +214,17 @@ router.get('/me', async (req: Request, res: Response) => {
     if (!session.user) {
         res.status(401).json({ error: 'Not authenticated' })
         return
+    }
+
+    if (!session.user.orgId) {
+        const dbUser = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { orgId: true }
+        })
+        if (dbUser?.orgId) {
+            session.user.orgId = dbUser.orgId
+            await session.save()
+        }
     }
 
     res.json({ user: session.user })

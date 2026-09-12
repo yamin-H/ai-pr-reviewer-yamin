@@ -37,8 +37,8 @@ const worker = new Worker<DigestJobData>(
                 }
             })
 
-            const approved = feedbackActions.filter((f: any) => f.action === 'approved').length
-            const dismissed = feedbackActions.filter((f: any) => f.action === 'dismissed').length
+            const approved = feedbackActions.filter((f: any) => f.action === 'approved' || f.action === 'approve').length
+            const dismissed = feedbackActions.filter((f: any) => f.action === 'dismissed' || f.action === 'dismiss').length
 
             // call Python agent to generate digest summary
             const agentResponse = await axios.post(
@@ -53,8 +53,12 @@ const worker = new Worker<DigestJobData>(
                         pr_number: r.prNumber,
                         comments: r.comments.map((c: any) => c.comment)
                     }))
+                },
+                {
+                    headers: { 'x-internal-secret': process.env.INTERNAL_SERVICE_KEY || 'powerful-internal-secret-change-in-prod' }
                 }
             )
+
 
             const { top_issue, top_dismissed, patterns_learned } = agentResponse.data
 

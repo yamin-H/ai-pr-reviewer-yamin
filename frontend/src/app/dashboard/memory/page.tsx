@@ -47,7 +47,12 @@ export default function TeamMemoryPage() {
   const entries = stats?.recentEntries || [];
   
   // Get unique categories for filters
-  const categories = Array.from(new Set(entries.map((e) => e.decisionType)));
+  const categories = Array.from(
+    new Set([
+      ...(stats?.byDecisionType?.map((d) => d.decisionType) || []),
+      ...entries.map((e) => e.decisionType),
+    ])
+  ).filter(Boolean);
 
   // Filter entries
   const filteredEntries = entries.filter((entry) => {
@@ -57,16 +62,32 @@ export default function TeamMemoryPage() {
       entry.repo.fullName.toLowerCase().includes(search.toLowerCase());
 
     const matchesCategory =
-      categoryFilter === "all" || entry.decisionType === categoryFilter;
+      categoryFilter === "all" ||
+      entry.decisionType.toLowerCase() === categoryFilter.toLowerCase();
 
     return matchesSearch && matchesCategory;
   });
 
-  // Calculate statistics for breakdown cards
-  const categoryCounts = entries.reduce((acc, entry) => {
-    acc[entry.decisionType] = (acc[entry.decisionType] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  // Calculate statistics for breakdown cards using total database aggregate
+  const categoryCounts: Record<string, number> = {};
+  (stats?.byDecisionType || []).forEach((item) => {
+    const key = item.decisionType.toLowerCase().replace(/[_\s-]+/g, "");
+    categoryCounts[key] = (categoryCounts[key] || 0) + item._count.decisionType;
+    categoryCounts[item.decisionType] = (categoryCounts[item.decisionType] || 0) + item._count.decisionType;
+  });
+
+  if (Object.keys(categoryCounts).length === 0) {
+    entries.forEach((entry) => {
+      const key = entry.decisionType.toLowerCase().replace(/[_\s-]+/g, "");
+      categoryCounts[key] = (categoryCounts[key] || 0) + 1;
+      categoryCounts[entry.decisionType] = (categoryCounts[entry.decisionType] || 0) + 1;
+    });
+  }
+
+  const getCount = (name: string) => {
+    const normalized = name.toLowerCase().replace(/[_\s-]+/g, "");
+    return categoryCounts[normalized] || categoryCounts[name] || 0;
+  };
 
   return (
     <div className="space-y-8">
@@ -86,7 +107,7 @@ export default function TeamMemoryPage() {
             <span>Security Rules</span>
             <ShieldCheck className="h-4 w-4 text-emerald-400" />
           </div>
-          <p className="text-3xl font-bold text-white">{categoryCounts["Security"] || 0}</p>
+          <p className="text-3xl font-bold text-white">{getCount("security")}</p>
           <p className="text-[10px] text-zinc-500">Learned credential leak prevention</p>
         </div>
 
@@ -95,7 +116,7 @@ export default function TeamMemoryPage() {
             <span>Performance</span>
             <Zap className="h-4 w-4 text-violet-400" />
           </div>
-          <p className="text-3xl font-bold text-white">{categoryCounts["Performance"] || 0}</p>
+          <p className="text-3xl font-bold text-white">{getCount("performance")}</p>
           <p className="text-[10px] text-zinc-500">Avoided rendering bottlenecks</p>
         </div>
 
@@ -104,7 +125,7 @@ export default function TeamMemoryPage() {
             <span>Code Smells</span>
             <AlertTriangle className="h-4 w-4 text-amber-400" />
           </div>
-          <p className="text-3xl font-bold text-white">{categoryCounts["Code Smell"] || 0}</p>
+          <p className="text-3xl font-bold text-white">{getCount("codesmell")}</p>
           <p className="text-[10px] text-zinc-500">Anticipated parsing discrepancies</p>
         </div>
 
@@ -113,7 +134,7 @@ export default function TeamMemoryPage() {
             <span>Active Rules</span>
             <Brain className="h-4 w-4 text-indigo-400" />
           </div>
-          <p className="text-3xl font-bold text-indigo-400">{stats?.totalEntries || 0}</p>
+          <p className="text-3xl font-bold text-indigo-400">{stats?.totalEntries || entries.length}</p>
           <p className="text-[10px] text-zinc-500">Total verified team conventions</p>
         </div>
       </div>
@@ -137,7 +158,7 @@ export default function TeamMemoryPage() {
               key={cat}
               onClick={() => setCategoryFilter(cat)}
               className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
-                categoryFilter === cat
+                categoryFilter.toLowerCase() === cat.toLowerCase()
                   ? "bg-indigo-600 text-white"
                   : "text-zinc-400 hover:text-white"
               }`}

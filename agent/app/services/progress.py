@@ -1,5 +1,5 @@
 import httpx
-from app.core.config import NODE_API_URL
+from app.core.config import NODE_API_URL, INTERNAL_SERVICE_KEY
 
 async def report_progress(job_id: str, node: str, status: str, message: str = "", meta: dict = None):
     """Send a pipeline progress event to the Node API to be streamed to the frontend."""
@@ -15,8 +15,10 @@ async def report_progress(job_id: str, node: str, status: str, message: str = ""
                     "message": message,
                     "meta": meta or {}
                 },
+                headers={"x-internal-secret": INTERNAL_SERVICE_KEY},
                 timeout=5
             )
+
             print(f"[Progress] Response: {response.status_code}")
     except Exception as e:
         print(f"[Progress] Failed to report {node}: {e}")
