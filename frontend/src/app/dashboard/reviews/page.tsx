@@ -170,7 +170,8 @@ export default function ReviewsPage() {
                 </CardContent>
               </Card>
             </Link>
-          ))}
+          );
+        })}
         </div>
       )}
     </div>
