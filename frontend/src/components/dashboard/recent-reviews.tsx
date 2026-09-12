@@ -43,33 +43,34 @@ export function RecentReviews({ reviews }: { reviews: PRReview[] }) {
           <Link
             key={review.id}
             href={`/dashboard/reviews/${review.id}`}
-            className="group flex items-center gap-4 rounded-xl border border-transparent p-3 transition-all hover:border-white/[0.06] hover:bg-white/[0.03]"
+            className="group flex items-center gap-4 rounded-xl border border-white/[0.04] p-3.5 transition-all hover:border-white/[0.1] hover:bg-white/[0.04] hover:-translate-y-0.5"
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 group-hover:scale-105 transition-transform">
               <GitPullRequest className="h-4 w-4" />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <p className="truncate text-sm font-medium text-white group-hover:text-indigo-200 transition-colors">
+                <p className="truncate text-sm font-semibold text-white group-hover:text-indigo-300 transition-colors">
                   {review.prTitle || `PR #${review.prNumber}`}
                 </p>
                 <StatusBadge status={review.status} />
               </div>
-              <p className="truncate text-xs text-zinc-500">
-                {review.repo.fullName} · {review.commentsCount} comments ·{" "}
+              <p className="truncate text-xs text-zinc-400 mt-0.5">
+                <span className="font-mono text-zinc-300">{review.repo.fullName}</span> · {review.commentsCount} comments ·{" "}
                 {formatRelativeDate(review.createdAt)}
               </p>
             </div>
             {review.commentUrl && (
-              <a
-                href={review.commentUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="shrink-0 text-zinc-600 hover:text-indigo-400 transition-colors"
+              <span
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(review.commentUrl!, "_blank");
+                }}
+                className="shrink-0 p-1.5 text-zinc-500 hover:text-white hover:bg-white/10 rounded-lg transition-all cursor-pointer"
+                title="View on GitHub"
               >
-                <ExternalLink className="h-4 w-4" />
-              </a>
+                <ExternalLink className="h-3.5 w-3.5" />
+              </span>
             )}
           </Link>
         ))}

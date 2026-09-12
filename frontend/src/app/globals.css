@@ -45,27 +45,48 @@ body {
 
 /* Custom Glassmorphism Utility */
 .glass {
-  background: rgba(11, 15, 26, 0.6);
+  background: rgba(11, 15, 26, 0.65);
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
 }
 
 .glass-card {
-  background: rgba(11, 15, 26, 0.35);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(135deg, rgba(17, 24, 39, 0.4) 0%, rgba(11, 15, 26, 0.6) 100%);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.06), 0 10px 30px -10px rgba(0, 0, 0, 0.5);
   border-radius: 1rem;
+}
+
+.glass-panel {
+  background: rgba(11, 15, 26, 0.85);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+}
+
+/* SaaS Background Dot Grid Pattern */
+.bg-dot-grid {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Code Diff Font & Display */
+.font-mono-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-feature-settings: "liga" 0;
 }
 
 /* Keyframes for soft pulse glow */
 @keyframes glow-pulse {
   0%, 100% {
-    opacity: 0.15;
+    opacity: 0.12;
     transform: scale(1);
   }
   50% {
-    opacity: 0.25;
-    transform: scale(1.05);
+    opacity: 0.22;
+    transform: scale(1.04);
   }
 }
 

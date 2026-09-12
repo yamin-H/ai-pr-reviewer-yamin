@@ -59,34 +59,34 @@ export default function WeeklyDigestPage() {
       </div>
 
       {/* Aggregate metrics */}
-      <div className="grid gap-6 sm:grid-cols-3">
-        <div className="glass-card p-5 flex items-center gap-4">
-          <div className="h-10 w-10 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+      <div className="grid gap-5 sm:grid-cols-3">
+        <div className="glass-card p-5 flex items-center gap-4 hover:border-white/[0.14] hover:-translate-y-0.5 transition-all">
+          <div className="h-11 w-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
             <TrendingUp className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-xl font-bold text-white">{totalReviewed}</p>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Total PRs Analyzed</p>
+            <p className="text-2xl font-extrabold text-white">{totalReviewed}</p>
+            <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Total PRs Analyzed</p>
           </div>
         </div>
 
-        <div className="glass-card p-5 flex items-center gap-4">
-          <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400">
+        <div className="glass-card p-5 flex items-center gap-4 hover:border-white/[0.14] hover:-translate-y-0.5 transition-all">
+          <div className="h-11 w-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
             <ShieldAlert className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-xl font-bold text-white">{totalFlags}</p>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-wider">AI Flags Raised</p>
+            <p className="text-2xl font-extrabold text-white">{totalFlags}</p>
+            <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">AI Flags Raised</p>
           </div>
         </div>
 
-        <div className="glass-card p-5 flex items-center gap-4">
-          <div className="h-10 w-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+        <div className="glass-card p-5 flex items-center gap-4 hover:border-white/[0.14] hover:-translate-y-0.5 transition-all">
+          <div className="h-11 w-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
             <Sparkles className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-xl font-bold text-emerald-400">{totalPatterns}</p>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Total Guidelines Extracted</p>
+            <p className="text-2xl font-extrabold text-emerald-400">{totalPatterns}</p>
+            <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Guidelines Extracted</p>
           </div>
         </div>
       </div>

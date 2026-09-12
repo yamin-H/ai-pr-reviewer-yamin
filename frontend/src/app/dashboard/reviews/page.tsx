@@ -55,15 +55,15 @@ export default function ReviewsPage() {
       {/* Filter and Search Bar */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-white/[0.06] pb-6">
         {/* Status Filter Tabs */}
-        <div className="flex rounded-xl bg-white/[0.03] p-1 border border-white/[0.05] self-start">
+        <div className="flex flex-wrap rounded-xl bg-white/[0.03] p-1 border border-white/[0.06] self-start gap-1">
           {(["all", "completed", "pending", "failed"] as StatusFilter[]).map((status) => (
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
-              className={`rounded-lg px-4 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer ${
+              className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold capitalize tracking-wide transition-all cursor-pointer ${
                 statusFilter === status
-                  ? "bg-indigo-600 text-white"
-                  : "text-zinc-400 hover:text-white"
+                  ? "bg-gradient-to-r from-indigo-500/20 to-violet-500/15 text-white border border-indigo-500/30 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]"
+                  : "text-zinc-400 hover:text-white hover:bg-white/[0.03]"
               }`}
             >
               {status}
@@ -73,13 +73,13 @@ export default function ReviewsPage() {
 
         {/* Search */}
         <div className="relative w-full max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
           <input
             type="text"
             placeholder="Search by title, PR#, or repo..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-10 pl-9 pr-4 rounded-xl border border-white/[0.08] bg-white/[0.03] text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500/50 transition-colors"
+            className="w-full h-10 pl-10 pr-4 rounded-xl border border-white/[0.08] bg-white/[0.03] text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500/50 transition-colors"
           />
         </div>
       </div>
@@ -100,32 +100,40 @@ export default function ReviewsPage() {
           </p>
         </Card>
       ) : (
-        <div className="space-y-4">
-          {filteredReviews.map((review) => (
-            <Link
-              key={review.id}
-              href={`/dashboard/reviews/${review.id}`}
-              className="block group"
-            >
-              <Card className="hover:border-white/[0.12] hover:bg-white/[0.04] transition-all duration-300">
-                <CardContent className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  {/* PR Info */}
-                  <div className="flex items-start gap-4 min-w-0 flex-1">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400">
-                      <GitPullRequest className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0 space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="font-semibold text-sm text-white group-hover:text-indigo-300 transition-colors truncate">
-                          {review.prTitle || `PR #${review.prNumber}`}
-                        </h3>
-                        <StatusBadge status={review.status} />
+        <div className="space-y-3.5">
+          {filteredReviews.map((review) => {
+            const statusBorder =
+              review.status === "completed"
+                ? "hover:border-emerald-500/40"
+                : review.status === "failed"
+                ? "hover:border-red-500/40"
+                : "hover:border-amber-500/40";
+
+            return (
+              <Link
+                key={review.id}
+                href={`/dashboard/reviews/${review.id}`}
+                className="block group"
+              >
+                <Card className={`hover:bg-white/[0.04] transition-all duration-300 ${statusBorder} hover:-translate-y-0.5 hover:shadow-lg`}>
+                  <CardContent className="p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    {/* PR Info */}
+                    <div className="flex items-start gap-4 min-w-0 flex-1">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 group-hover:scale-105 transition-transform">
+                        <GitPullRequest className="h-5 w-5" />
                       </div>
-                      <p className="text-xs text-zinc-500 truncate">
-                        {review.repo.fullName} · PR #{review.prNumber}
-                      </p>
+                      <div className="min-w-0 space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="font-semibold text-sm text-white group-hover:text-indigo-300 transition-colors truncate">
+                            {review.prTitle || `PR #${review.prNumber}`}
+                          </h3>
+                          <StatusBadge status={review.status} />
+                        </div>
+                        <p className="text-xs text-zinc-400 truncate">
+                          <span className="font-mono text-zinc-300">{review.repo.fullName}</span> · PR #{review.prNumber}
+                        </p>
+                      </div>
                     </div>
-                  </div>
 
                   {/* Metadata Stats & Dates */}
                   <div className="flex flex-wrap items-center gap-6 text-xs text-zinc-500 md:self-center">

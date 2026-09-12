@@ -101,15 +101,17 @@ export default function RepositoriesPage() {
           {filteredRepos.map((repo) => {
             const isSyncing = syncingRepoId === repo.id;
             return (
-              <Card key={repo.id} className="relative overflow-hidden group hover:border-white/[0.12] transition-colors">
+              <Card key={repo.id} className="relative overflow-hidden group hover:border-white/[0.16] hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
                 {/* Visual decoration overlay */}
-                <div className="absolute top-0 right-0 h-16 w-16 bg-gradient-to-br from-indigo-500/5 to-transparent rounded-bl-full pointer-events-none" />
+                <div className="absolute top-0 right-0 h-24 w-24 bg-gradient-to-br from-indigo-500/10 to-transparent rounded-bl-full pointer-events-none group-hover:from-indigo-500/20 transition-all" />
                 
-                <CardHeader className="p-6">
+                <CardHeader className="p-6 pb-4">
                   <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <FolderGit2 className="h-5 w-5 text-indigo-400" />
-                      <Badge variant={repo.private ? "danger" : "default"} className="text-[10px] px-2 py-0">
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-9 w-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0 group-hover:scale-105 transition-transform">
+                        <FolderGit2 className="h-4.5 w-4.5" />
+                      </div>
+                      <Badge variant={repo.private ? "warning" : "default"} className="text-[10px] px-2 py-0.5">
                         {repo.private ? (
                           <span className="flex items-center gap-1">
                             <Lock className="h-2.5 w-2.5" />
@@ -127,42 +129,43 @@ export default function RepositoriesPage() {
                       href={`https://github.com/${repo.fullName}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-zinc-500 hover:text-white transition-colors"
+                      className="p-1 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                      title="Open in GitHub"
                     >
                       <ExternalLink className="h-4 w-4" />
                     </a>
                   </div>
-                  <div className="mt-3">
-                    <CardTitle className="text-base truncate">{repo.name}</CardTitle>
-                    <CardDescription className="text-xs truncate">{repo.fullName}</CardDescription>
+                  <div className="mt-3.5 space-y-1">
+                    <CardTitle className="text-base font-bold text-white tracking-tight truncate">{repo.name}</CardTitle>
+                    <CardDescription className="text-xs font-mono text-zinc-400 truncate">{repo.fullName}</CardDescription>
                   </div>
                 </CardHeader>
-                <CardContent className="p-6 pt-0 space-y-4">
+                <CardContent className="p-6 pt-0 space-y-5">
                   {/* Repo metrics */}
-                  <div className="grid grid-cols-2 gap-4 border-t border-b border-white/[0.05] py-4">
+                  <div className="grid grid-cols-2 gap-4 border-t border-b border-white/[0.06] py-4 bg-white/[0.01] rounded-xl px-3">
                     <div>
-                      <p className="text-lg font-bold text-white">{repo._count.reviews}</p>
-                      <p className="text-[10px] text-zinc-500 uppercase tracking-wider">PR Reviews</p>
+                      <p className="text-xl font-extrabold text-white">{repo._count.reviews}</p>
+                      <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">PR Reviews</p>
                     </div>
                     <div>
-                      <p className="text-lg font-bold text-emerald-400">{repo._count.memoryEntries}</p>
-                      <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Rules Extracted</p>
+                      <p className="text-xl font-extrabold text-emerald-400">{repo._count.memoryEntries}</p>
+                      <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Rules Extracted</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-zinc-500">
-                      Connected {new Date(repo.createdAt).toLocaleDateString()}
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-[11px] text-zinc-400 font-medium">
+                      {new Date(repo.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                     </span>
                     <Button
                       size="sm"
-                      variant="secondary"
+                      variant={isSyncing ? "secondary" : "default"}
                       disabled={isSyncing}
                       onClick={() => handleSyncRepo(repo.id)}
-                      className="gap-2 text-xs"
+                      className="gap-2 text-xs font-semibold px-3.5 h-8.5 rounded-lg"
                     >
-                      <RefreshCw className={`h-3 w-3 ${isSyncing ? "animate-spin" : ""}`} />
-                      {isSyncing ? "Syncing..." : "Scan Repo"}
+                      <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin" : ""}`} />
+                      {isSyncing ? "Scanning History..." : "Scan Repo"}
                     </Button>
                   </div>
                 </CardContent>

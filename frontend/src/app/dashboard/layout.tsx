@@ -42,31 +42,61 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[#05070C]">
+    <div className="min-h-screen bg-[#05070C] bg-dot-grid relative">
+      {/* Ambient background glow */}
+      <div className="fixed top-0 left-64 right-0 h-96 bg-gradient-to-b from-indigo-500/5 via-violet-500/2 to-transparent pointer-events-none" />
+
       {/* Sidebar - fixed width 64 */}
       <Sidebar />
 
       {/* Main Content Area */}
-      <div className="pl-64">
+      <div className="pl-64 flex flex-col min-h-screen">
         {/* Top Header */}
-        <header className="flex h-16 items-center justify-between border-b border-white/[0.06] bg-[#0B0F1A]/40 px-8 backdrop-blur-md sticky top-0 z-20">
-          <div className="flex items-center gap-3">
+        <header className="flex h-14 items-center justify-between border-b border-white/[0.08] bg-[#070A12]/80 px-8 backdrop-blur-xl sticky top-0 z-20 shadow-sm">
+          {/* Breadcrumbs */}
+          <div className="flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-2 text-zinc-400 font-medium">
+              <span className="text-zinc-500">Dashboard</span>
+              <span className="text-zinc-600">/</span>
+              <span className="text-zinc-200 capitalize">
+                {typeof window !== "undefined"
+                  ? window.location.pathname.split("/").filter(Boolean)[1] || "Overview"
+                  : "Overview"}
+              </span>
+            </div>
+
             {isClientMock && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-500/10 px-2.5 py-0.5 text-[11px] font-medium text-violet-400 border border-violet-500/20">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-500/10 px-2.5 py-0.5 text-[10px] font-medium text-violet-400 border border-violet-500/20">
                 <Terminal className="h-3 w-3" />
-                Sandbox Demo Mode
+                Demo Sandbox
               </span>
             )}
           </div>
+
+          {/* Right Header Badges & Actions */}
           <div className="flex items-center gap-4">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400 border border-emerald-500/20">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Agent Core Online
-            </span>
+            <div className="hidden sm:flex items-center gap-2 rounded-full bg-white/[0.03] border border-white/[0.07] px-3 py-1 text-xs">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
+              <span className="text-[11px] font-medium text-zinc-300">Agent Core 2.0</span>
+              <span className="text-zinc-600">|</span>
+              <span className="text-[10px] font-mono text-emerald-400 font-semibold">18ms</span>
+            </div>
+
+            <a
+              href="https://github.com/yamin-H/ai-pr-reviewer-yamin"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-zinc-400 hover:text-white transition-colors px-2 py-1 rounded-lg hover:bg-white/[0.05]"
+            >
+              Docs ↗
+            </a>
           </div>
         </header>
 
-        <main className="p-8 max-w-[1400px] mx-auto min-h-[calc(100vh-4rem)]">
+        <main className="p-8 max-w-[1440px] w-full mx-auto flex-1">
           {children}
         </main>
       </div>

@@ -145,22 +145,22 @@ export default function TeamMemoryPage() {
         <div className="flex flex-wrap rounded-xl bg-white/[0.03] p-1 border border-white/[0.05] self-start gap-1">
           <button
             onClick={() => setCategoryFilter("all")}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
+            className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold tracking-wide transition-all cursor-pointer ${
               categoryFilter === "all"
-                ? "bg-indigo-600 text-white"
-                : "text-zinc-400 hover:text-white"
+                ? "bg-gradient-to-r from-indigo-500/20 to-violet-500/15 text-white border border-indigo-500/30 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]"
+                : "text-zinc-400 hover:text-white hover:bg-white/[0.03]"
             }`}
           >
-            All
+            All Rules
           </button>
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setCategoryFilter(cat)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
+              className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold tracking-wide transition-all cursor-pointer ${
                 categoryFilter.toLowerCase() === cat.toLowerCase()
-                  ? "bg-indigo-600 text-white"
-                  : "text-zinc-400 hover:text-white"
+                  ? "bg-gradient-to-r from-indigo-500/20 to-violet-500/15 text-white border border-indigo-500/30 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]"
+                  : "text-zinc-400 hover:text-white hover:bg-white/[0.03]"
               }`}
             >
               {cat}
@@ -170,13 +170,13 @@ export default function TeamMemoryPage() {
 
         {/* Search */}
         <div className="relative w-full max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
           <input
             type="text"
             placeholder="Search rules, files, repositories..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-10 pl-9 pr-4 rounded-xl border border-white/[0.08] bg-white/[0.03] text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500/50 transition-colors"
+            className="w-full h-10 pl-10 pr-4 rounded-xl border border-white/[0.08] bg-white/[0.03] text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500/50 transition-colors"
           />
         </div>
       </div>
@@ -193,37 +193,40 @@ export default function TeamMemoryPage() {
       ) : (
         <div className="space-y-4">
           {filteredEntries.map((entry) => (
-            <Card key={entry.id} className="relative overflow-hidden hover:border-white/[0.12] transition-colors">
+            <Card key={entry.id} className="relative overflow-hidden hover:border-white/[0.14] hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 border-l-2 border-l-indigo-500/70">
               <CardContent className="p-6 space-y-4">
                 <div className="flex items-center gap-2.5">
-                  <span className="rounded-md bg-indigo-500/10 px-2.5 py-0.5 text-xs font-medium text-indigo-300 border border-indigo-500/20">
+                  <span className="rounded-lg bg-indigo-500/15 px-2.5 py-0.5 text-xs font-semibold text-indigo-300 border border-indigo-500/25">
                     {entry.decisionType}
                   </span>
-                  <span className="rounded-md bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-medium text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
+                  <span className="rounded-lg bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
                     {entry.outcome}
                   </span>
-                  <span className="ml-auto text-xs text-zinc-500 font-medium">
+                  <span className="inline-flex items-center gap-1 rounded-md bg-white/[0.04] px-2 py-0.5 text-[10px] font-mono text-zinc-400 border border-white/[0.06]">
+                    384-dim Vector
+                  </span>
+                  <span className="ml-auto text-xs text-zinc-400 font-mono font-medium">
                     PR #{entry.prNumber}
                   </span>
                 </div>
 
-                <p className="text-sm text-zinc-200 leading-relaxed font-medium">
+                <p className="text-sm text-zinc-200 leading-relaxed font-sans">
                   {entry.content}
                 </p>
 
-                <div className="flex items-center gap-6 text-[11px] text-zinc-500 border-t border-white/[0.04] pt-4">
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-zinc-400 border-t border-white/[0.06] pt-4">
                   <div className="flex items-center gap-1.5">
-                    <FolderGit2 className="h-3.5 w-3.5" />
-                    <span>{entry.repo.fullName}</span>
+                    <FolderGit2 className="h-3.5 w-3.5 text-indigo-400" />
+                    <span className="font-mono text-zinc-300">{entry.repo.fullName}</span>
                   </div>
                   {entry.filePath && (
                     <div className="flex items-center gap-1.5">
-                      <BookOpen className="h-3.5 w-3.5" />
+                      <BookOpen className="h-3.5 w-3.5 text-zinc-500" />
                       <span className="font-mono text-zinc-400">{entry.filePath}</span>
                     </div>
                   )}
-                  <span className="ml-auto">
-                    Learned {new Date(entry.createdAt).toLocaleDateString()}
+                  <span className="ml-auto text-[11px] text-zinc-500">
+                    Learned {new Date(entry.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                   </span>
                 </div>
               </CardContent>

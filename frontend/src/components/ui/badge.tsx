@@ -42,26 +42,37 @@ export function StatusBadge({ status }: { status: string }) {
           ? "warning"
           : "muted";
 
+  const dotColor =
+    status === "completed"
+      ? "bg-emerald-400"
+      : status === "failed"
+        ? "bg-red-400"
+        : status === "pending"
+          ? "bg-amber-400 animate-pulse"
+          : "bg-zinc-400";
+
   return (
-    <Badge variant={variant} className="capitalize">
-      {status}
+    <Badge variant={variant} className="gap-1.5 font-medium tracking-wide">
+      <span className={cn("h-1.5 w-1.5 rounded-full", dotColor)} />
+      <span className="capitalize">{status}</span>
     </Badge>
   );
 }
 
 export function SeverityBadge({ severity }: { severity: string }) {
+  const normalized = severity.toLowerCase();
   const variant =
-    severity === "critical" || severity === "error"
+    normalized === "critical" || normalized === "error"
       ? "danger"
-      : severity === "warning"
+      : normalized === "warning"
         ? "warning"
-        : severity === "info"
+        : normalized === "info"
           ? "info"
           : "muted";
 
   return (
-    <Badge variant={variant} className="capitalize">
-      {severity}
+    <Badge variant={variant} className="gap-1 font-semibold uppercase tracking-wider text-[10px]">
+      <span className="capitalize">{severity}</span>
     </Badge>
   );
 }
