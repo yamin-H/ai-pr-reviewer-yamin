@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth/auth-provider";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme/theme-provider";
 
 const navGroups = [
   {
@@ -57,17 +58,20 @@ export function Sidebar() {
     <aside className="fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r border-white/[0.08] bg-[#080B14]/90 backdrop-blur-2xl">
       {/* Brand & Workspace */}
       <div className="flex flex-col border-b border-white/[0.07] px-5 py-4 gap-3">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.25),0_4px_12px_rgba(99,102,241,0.3)]">
-            <Sparkles className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm font-bold text-white tracking-tight">Powerful</span>
-              <span className="rounded-md bg-indigo-500/20 px-1.5 py-0.2 text-[9px] font-semibold text-indigo-300 border border-indigo-500/30">v2.0</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.25),0_4px_12px_rgba(99,102,241,0.3)]">
+              <Sparkles className="h-5 w-5 text-white" />
             </div>
-            <p className="text-[11px] text-zinc-400 font-medium">Autonomous PR Review</p>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-bold text-white tracking-tight">Powerful</span>
+                <span className="rounded-md bg-indigo-500/20 px-1.5 py-0.2 text-[9px] font-semibold text-indigo-300 border border-indigo-500/30">v2.0</span>
+              </div>
+              <p className="text-[11px] text-zinc-400 font-medium">Autonomous PR Review</p>
+            </div>
           </div>
+          <ThemeToggle />
         </div>
 
         {/* Active Workspace / Org Pill */}

@@ -172,6 +172,8 @@ export function InteractiveBackground() {
       ctx.clearRect(0, 0, width, height);
 
       // 1. Draw Mouse-Driven Luminous Ambient Spotlight
+      const isLight = typeof document !== "undefined" && document.documentElement.classList.contains("light");
+
       if (mouse.isHovered || true) {
         const glowRadius = 380;
         const radialGradient = ctx.createRadialGradient(
@@ -182,10 +184,17 @@ export function InteractiveBackground() {
           mouse.y,
           glowRadius
         );
-        radialGradient.addColorStop(0, "rgba(99, 102, 241, 0.11)");
-        radialGradient.addColorStop(0.35, "rgba(139, 92, 246, 0.05)");
-        radialGradient.addColorStop(0.7, "rgba(56, 189, 248, 0.015)");
-        radialGradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+        if (isLight) {
+          radialGradient.addColorStop(0, "rgba(99, 102, 241, 0.09)");
+          radialGradient.addColorStop(0.35, "rgba(139, 92, 246, 0.04)");
+          radialGradient.addColorStop(0.7, "rgba(56, 189, 248, 0.02)");
+          radialGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+        } else {
+          radialGradient.addColorStop(0, "rgba(99, 102, 241, 0.11)");
+          radialGradient.addColorStop(0.35, "rgba(139, 92, 246, 0.05)");
+          radialGradient.addColorStop(0.7, "rgba(56, 189, 248, 0.015)");
+          radialGradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+        }
 
         ctx.fillStyle = radialGradient;
         ctx.fillRect(0, 0, width, height);

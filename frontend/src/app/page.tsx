@@ -27,6 +27,7 @@ import { PipelineExplorer } from "@/components/home/pipeline-explorer";
 import { RiskCalculator } from "@/components/home/risk-calculator";
 import { ComparisonMatrix } from "@/components/home/comparison-matrix";
 import { InteractiveBackground } from "@/components/home/interactive-background";
+import { ThemeToggle } from "@/components/theme/theme-provider";
 
 const SAMPLE_YAML = `# .powerful.yml — Declarative Repository Review Guidelines
 rules:
@@ -128,6 +129,7 @@ export default function Home() {
         </nav>
 
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           {user ? (
             <Link href="/dashboard">
               <Button size="sm" className="gap-2 shadow-lg shadow-indigo-500/20">
