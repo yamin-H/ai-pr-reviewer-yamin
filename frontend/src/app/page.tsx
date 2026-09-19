@@ -26,6 +26,7 @@ import { ReviewSimulator } from "@/components/home/review-simulator";
 import { PipelineExplorer } from "@/components/home/pipeline-explorer";
 import { RiskCalculator } from "@/components/home/risk-calculator";
 import { ComparisonMatrix } from "@/components/home/comparison-matrix";
+import { InteractiveBackground } from "@/components/home/interactive-background";
 
 const SAMPLE_YAML = `# .powerful.yml — Declarative Repository Review Guidelines
 rules:
@@ -47,8 +48,11 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen bg-[#04060B] text-zinc-100 overflow-x-hidden font-sans selection:bg-indigo-500 selection:text-white">
+      {/* Interactive Neural Canvas with Smooth Mouse Interaction */}
+      <InteractiveBackground />
+
       {/* Ambient background glow layers */}
-      <div className="fixed inset-0 bg-dot-grid opacity-35 pointer-events-none" />
+      <div className="fixed inset-0 bg-dot-grid opacity-30 pointer-events-none" />
       <div className="fixed top-[-20%] left-[-15%] w-[60vw] h-[60vw] rounded-full bg-gradient-to-br from-indigo-600/15 via-violet-600/10 to-transparent blur-[120px] pointer-events-none" />
       <div className="fixed top-[40%] right-[-15%] w-[55vw] h-[55vw] rounded-full bg-gradient-to-br from-emerald-600/10 via-indigo-600/10 to-transparent blur-[140px] pointer-events-none" />
       <div className="fixed bottom-[-10%] left-[20%] w-[50vw] h-[50vw] rounded-full bg-gradient-to-tr from-violet-600/15 to-transparent blur-[120px] pointer-events-none" />
