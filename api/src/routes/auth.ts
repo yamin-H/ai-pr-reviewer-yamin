@@ -138,11 +138,17 @@ router.get('/github/installed', async (req: Request, res: Response) => {
         // Upsert the organization record with the installation ID
         const org = await prisma.organization.upsert({
             where: { login: orgLogin },
-            update: { installationId: installId, githubId: accountId },
+            update: {
+                installationId: installId,
+                githubId: accountId,
+                isInstalled: true,
+                uninstalledAt: null,
+            },
             create: {
                 githubId: accountId,
                 login: orgLogin,
-                installationId: installId
+                installationId: installId,
+                isInstalled: true,
             }
         })
 
@@ -191,11 +197,12 @@ router.get('/github/installed', async (req: Request, res: Response) => {
                 installation_id: installId,
                 org_id: org.id
             }, {
-                headers: { 'x-internal-secret': process.env.INTERNAL_SERVICE_KEY || 'powerful-internal-secret-change-in-prod' }
+                headers: { 'x-internal-secret': process.env.INTERNAL_SERVICE_KEY }
             }).catch((e: any) => {
                 console.warn(`Onboard agent call failed for ${primaryRepo.full_name}:`, e.message)
             })
         }
+
 
 
         // Redirect back to the frontend — tell them to sign in now
@@ -242,7 +249,7 @@ router.get('/install/status', async (req: Request, res: Response) => {
             where: { login: login as string }
         })
         res.json({
-            installed: !!org,
+            installed: !!org && org.isInstalled !== false,
             installationId: org?.installationId ?? null
         })
     } catch (err) {

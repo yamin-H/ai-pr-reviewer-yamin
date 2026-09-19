@@ -9,10 +9,30 @@ from app.graph.review.agent import review_graph
 from app.core.config import INTERNAL_SERVICE_KEY
 import json
 
-async def verify_internal_secret(x_internal_secret: Optional[str] = Header(None)):
-    expected = INTERNAL_SERVICE_KEY or "powerful-internal-secret-change-in-prod"
-    if x_internal_secret is not None and x_internal_secret != expected:
-        raise HTTPException(status_code=403, detail="Unauthorized internal service call")
+async def verify_internal_secret(x_internal_secret: Optional[str] = Header(None)) -> None:
+    """
+    Validate the internal service-to-service secret on every request routed
+    through this dependency.
+
+    Rejects with:
+      - 500 if INTERNAL_SERVICE_KEY is not configured on this server
+            (misconfiguration, never returns 403 so the two failure modes
+             are clearly distinguishable in logs and monitoring)
+      - 403 if the header is absent or its value does not match exactly
+    """
+    if not INTERNAL_SERVICE_KEY:
+        # Server is misconfigured — this should have been caught at startup
+        # by validate_required_env(), but we guard defensively here as well.
+        raise HTTPException(
+            status_code=500,
+            detail="Internal service key is not configured on this server.",
+        )
+
+    if not x_internal_secret or x_internal_secret != INTERNAL_SERVICE_KEY:
+        raise HTTPException(
+            status_code=403,
+            detail="Unauthorized internal service call.",
+        )
 
 router = APIRouter(dependencies=[Depends(verify_internal_secret)])
 
@@ -22,6 +42,9 @@ class ReviewRequest(BaseModel):
     repo: str
     pr_number: int
     installation_id: int
+    confidence_threshold: Optional[float] = 0.5
+    past_dismissal_rate: Optional[float] = 0.20
+    head_sha: Optional[str] = None
 
 class OnboardRequest(BaseModel):
     repo: str
@@ -50,13 +73,16 @@ class LearnRequest(BaseModel):
 
 @router.post("/review")
 async def review_pr(body: ReviewRequest):
-    print(f"Got review job: {body.job_id} for PR #{body.pr_number} on {body.repo}")
+    print(f"Got review job: {body.job_id} for PR #{body.pr_number} on {body.repo} (threshold: {body.confidence_threshold})")
 
     result = await review_graph.ainvoke({
         "job_id": body.job_id,
         "repo": body.repo,
         "pr_number": body.pr_number,
-        "installation_id": body.installation_id
+        "installation_id": body.installation_id,
+        "confidence_threshold": body.confidence_threshold or 0.5,
+        "past_dismissal_rate": body.past_dismissal_rate or 0.20,
+        "head_sha": body.head_sha
     })
 
     # Serialize comments for the Node API to save them in Prisma
@@ -76,10 +102,18 @@ async def review_pr(body: ReviewRequest):
     return {
         "status": "completed",
         "job_id": body.job_id,
+        "risk_score": result.get("risk_score"),
+        "risk_breakdown": result.get("risk_breakdown"),
+        "head_sha": result.get("head_sha") or body.head_sha,
+        "custom_rules_count": len(result.get("custom_rules", [])),
         "comments_posted": len(result.get("comments", [])),
         "files_reviewed": len(result.get("changed_files", [])),
         "comment_url": result.get("posted_urls", [None])[0] if result.get("posted_urls") else None,
-        "comments": comments_data
+        "comments": comments_data,
+        "llm_calls": result.get("llm_calls", 1),
+        "prompt_tokens": result.get("prompt_tokens", 0),
+        "completion_tokens": result.get("completion_tokens", 0),
+        "total_tokens": result.get("total_tokens", 0),
     }
 
 
@@ -142,26 +176,6 @@ async def learn_from_feedback(body: LearnRequest):
         "content": content,
         "decision_type": decision_type
     }
-
-
-@router.post("/memory/test")
-async def test_memory():
-    await store_decision(
-        org_id="test-org",
-        repo_id="yamin-H/bug-test-repo",
-        content="Team rejected N+1 query pattern in UserService. Developer was fetching user inside a loop. Requested to use batch query with whereIn instead.",
-        decision_type="performance",
-        outcome="rejected",
-        pr_number=5,
-        file_path="src/services/UserService.ts"
-    )
-
-    results = await search_memory(
-        repo_id="yamin-H/bug-test-repo",
-        query="database call inside a for loop fetching users one by one"
-    )
-
-    return {"stored": True, "search_results": results}
 
 
 @router.post("/digest")

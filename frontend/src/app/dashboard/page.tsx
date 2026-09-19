@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { RecentReviews } from "@/components/dashboard/recent-reviews";
 import { DigestCard } from "@/components/dashboard/digest-card";
 import { MemoryCharts, RecentMemoryEntries } from "@/components/dashboard/memory-charts";
+import { OnboardingGuide } from "@/components/dashboard/onboarding-guide";
 import {
   GitPullRequest,
   FolderGit2,
@@ -25,34 +26,32 @@ export default function OverviewPage() {
   const [memoryStats, setMemoryStats] = useState<MemoryStats | null>(null);
   const [digests, setDigests] = useState<WeeklyDigest[]>([]);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Fetch all dependencies in parallel
-        const [reposRes, reviewsRes, memoryStatsRes, digestsRes] = await Promise.all([
-          api.getRepos(),
-          api.getReviews(),
-          api.getMemoryStats(),
-          api.getDigests(),
-        ]);
+  const fetchData = useCallback(async () => {
+    try {
+      setError(null);
+      // Fetch all dependencies in parallel
+      const [reposRes, reviewsRes, memoryStatsRes, digestsRes] = await Promise.all([
+        api.getRepos(),
+        api.getReviews(),
+        api.getMemoryStats(),
+        api.getDigests(),
+      ]);
 
-        setRepos(reposRes.repos);
-        setReviews(reviewsRes.reviews);
-        setMemoryStats(memoryStatsRes);
-        setDigests(digestsRes.digests);
-      } catch (err: any) {
-        console.error("Error loading dashboard data:", err);
-        setError(err.message || "Failed to load dashboard data");
-      } finally {
-        setLoading(false);
-      }
+      setRepos(reposRes.repos);
+      setReviews(reviewsRes.reviews);
+      setMemoryStats(memoryStatsRes);
+      setDigests(digestsRes.digests);
+    } catch (err: any) {
+      console.error("Error loading dashboard data:", err);
+      setError(err.message || "Failed to load dashboard data");
+    } finally {
+      setLoading(false);
     }
-
-    fetchData();
   }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   if (loading) {
     return <PageSkeleton />;
@@ -65,8 +64,11 @@ export default function OverviewPage() {
         <h3 className="text-lg font-bold text-white mb-2">Error Loading Dashboard</h3>
         <p className="text-sm text-zinc-400 mb-6">{error}</p>
         <button
-          onClick={() => window.location.reload()}
-          className="text-xs font-semibold bg-white/5 border border-white/10 hover:bg-white/10 text-white px-4 py-2 rounded-xl transition-colors"
+          onClick={() => {
+            setLoading(true);
+            fetchData();
+          }}
+          className="text-xs font-semibold bg-white/5 border border-white/10 hover:bg-white/10 text-white px-4 py-2 rounded-xl transition-colors cursor-pointer"
         >
           Retry Connection
         </button>
@@ -76,6 +78,9 @@ export default function OverviewPage() {
 
   const latestDigest = digests[0];
   const totalReviewsCount = reviews.length;
+  const hasFeedback = reviews.some(
+    (r) => r.feedbackActions && r.feedbackActions.length > 0
+  );
   
   return (
     <div className="space-y-8">
@@ -114,13 +119,22 @@ export default function OverviewPage() {
         </div>
       </div>
 
+      {/* Interactive Quickstart Onboarding Guide */}
+      <OnboardingGuide
+        repos={repos}
+        reviewsCount={totalReviewsCount}
+        memoryCount={memoryStats?.totalEntries || 0}
+        hasFeedback={hasFeedback}
+        onRefresh={fetchData}
+      />
+
       {/* Stats Cards Grid */}
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total PR Reviews"
           value={totalReviewsCount}
           subtitle="All connected repos"
-          trend="+28% this month"
+          trend={totalReviewsCount > 0 ? "Active" : "Ready"}
           icon={GitPullRequest}
           accent="indigo"
         />
@@ -157,7 +171,10 @@ export default function OverviewPage() {
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Left Column: Recent Reviews (spanning 2/3 cols) */}
         <div className="lg:col-span-2">
-          <RecentReviews reviews={reviews} />
+          <RecentReviews
+            reviews={reviews}
+            primaryRepo={repos[0]?.fullName}
+          />
         </div>
 
         {/* Right Column: Digest Card & Recent Memory Entries (spanning 1/3 cols) */}
@@ -177,3 +194,4 @@ export default function OverviewPage() {
     </div>
   );
 }
+

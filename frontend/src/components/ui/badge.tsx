@@ -76,3 +76,21 @@ export function SeverityBadge({ severity }: { severity: string }) {
     </Badge>
   );
 }
+
+export function RiskBadge({ score, className }: { score?: number | null; className?: string }) {
+  if (score === null || score === undefined) return null;
+
+  const isLow = score < 30;
+  const isModerate = score >= 30 && score <= 70;
+
+  const variant = isLow ? "success" : isModerate ? "warning" : "danger";
+  const label = isLow ? "Low Risk" : isModerate ? "Moderate Risk" : "High Risk";
+  const dotColor = isLow ? "bg-emerald-400" : isModerate ? "bg-amber-400" : "bg-red-400";
+
+  return (
+    <Badge variant={variant} className={cn("gap-1.5 font-medium tracking-wide text-[10px]", className)}>
+      <span className={cn("h-1.5 w-1.5 rounded-full", dotColor)} />
+      <span>{label} ({score}/100)</span>
+    </Badge>
+  );
+}

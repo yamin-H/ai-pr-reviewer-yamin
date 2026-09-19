@@ -27,7 +27,7 @@ async def get_github_client(installation_id: int = None) -> Github:
     raise Exception("Installation ID is required.")
 
 
-async def get_pr_diff(repo_name: str, pr_number: int, installation_id: int = None) -> list[dict]:
+async def get_pr_details(repo_name: str, pr_number: int, installation_id: int = None) -> tuple[list[dict], str]:
     github_client = await get_github_client(installation_id)
     repo = github_client.get_repo(repo_name)
     pr = repo.get_pull(pr_number)
@@ -43,7 +43,38 @@ async def get_pr_diff(repo_name: str, pr_number: int, installation_id: int = Non
                 "status": file.status
             })
 
-    return changed_files
+    return changed_files, pr.head.sha
+
+
+async def get_pr_diff(repo_name: str, pr_number: int, installation_id: int = None) -> list[dict]:
+    files, _ = await get_pr_details(repo_name, pr_number, installation_id)
+    return files
+
+
+async def post_commit_status(
+    repo_name: str,
+    sha: str,
+    state: str,
+    description: str,
+    target_url: str = None,
+    context: str = "Powerful AI / PR Risk",
+    installation_id: int = None
+) -> bool:
+    try:
+        github_client = await get_github_client(installation_id)
+        repo = github_client.get_repo(repo_name)
+        commit = repo.get_commit(sha)
+        commit.create_status(
+            state=state,
+            description=description[:140],
+            context=context,
+            target_url=target_url or ""
+        )
+        print(f"[github] Posted commit status ({state}) to {repo_name}@{sha[:7]}: {description}")
+        return True
+    except Exception as e:
+        print(f"[github] Warning: Failed to post commit status: {e}")
+        return False
 
 
 async def post_review_comment(

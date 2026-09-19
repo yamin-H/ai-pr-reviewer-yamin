@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { StatusBadge, SeverityBadge } from "@/components/ui/badge";
+import { StatusBadge, SeverityBadge, RiskBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate } from "@/lib/utils";
@@ -20,6 +20,7 @@ import {
   AlertCircle,
   ExternalLink,
   ChevronRight,
+  ShieldAlert,
 } from "lucide-react";
 import type { PRReview, ReviewComment, FeedbackAction } from "@/lib/types";
 
@@ -151,6 +152,7 @@ export default function ReviewDetailPage({ params: paramsPromise }: { params: Pr
               PR #{review.prNumber}
             </span>
             <StatusBadge status={review.status} />
+            <RiskBadge score={review.riskScore} />
           </div>
 
           <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-tight">
@@ -174,7 +176,41 @@ export default function ReviewDetailPage({ params: paramsPromise }: { params: Pr
       </div>
 
       {/* Metric Cards */}
-      <div className="grid gap-5 sm:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Risk Assessment */}
+        <div className="glass-card p-5 flex items-center gap-4">
+          <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 border ${
+            review.riskScore !== null && review.riskScore !== undefined
+              ? review.riskScore < 30
+                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                : review.riskScore <= 70
+                ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                : "bg-red-500/10 border-red-500/20 text-red-400"
+              : "bg-white/5 border-white/10 text-zinc-400"
+          }`}>
+            <ShieldAlert className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="flex items-baseline gap-1">
+              <p className="text-2xl font-extrabold text-white">
+                {review.riskScore !== null && review.riskScore !== undefined ? review.riskScore : "—"}
+              </p>
+              {review.riskScore !== null && review.riskScore !== undefined && (
+                <span className="text-xs text-zinc-500 font-medium">/ 100</span>
+              )}
+            </div>
+            <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
+              {review.riskScore !== null && review.riskScore !== undefined
+                ? review.riskScore < 30
+                  ? "Low Risk Level"
+                  : review.riskScore <= 70
+                  ? "Moderate Risk"
+                  : "High Risk Level"
+                : "Risk Score Pending"}
+            </p>
+          </div>
+        </div>
+
         <div className="glass-card p-5 flex items-center gap-4">
           <div className="h-11 w-11 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shrink-0">
             <FileCode2 className="h-5 w-5" />

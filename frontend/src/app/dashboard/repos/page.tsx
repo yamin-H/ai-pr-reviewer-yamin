@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FolderGit2, GitFork, RefreshCw, Search, Sparkles, ExternalLink, Globe, Lock } from "lucide-react";
+import { FolderGit2, GitFork, RefreshCw, Search, Sparkles, ExternalLink, Globe, Lock, FileCode } from "lucide-react";
 import type { Repo } from "@/lib/types";
 
 export default function RepositoriesPage() {
@@ -88,15 +88,35 @@ export default function RepositoriesPage() {
             <Skeleton key={i} className="h-48" />
           ))}
         </div>
+      ) : repos.length === 0 ? (
+        <Card className="flex flex-col items-center justify-center p-16 text-center border-indigo-500/20 bg-[#0B0F1A]/80 backdrop-blur-xl">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 mb-4 shadow-lg shadow-indigo-500/10">
+            <FolderGit2 className="h-8 w-8" />
+          </div>
+          <h3 className="text-base font-bold text-white mb-1.5">No Repositories Connected</h3>
+          <p className="text-xs text-zinc-400 max-w-sm mb-6 leading-relaxed">
+            Install the Powerful GitHub App on your personal account or organization to authorize the autonomous review engine on your repositories.
+          </p>
+          <a href={getInstallUrl()} target="_blank" rel="noopener noreferrer">
+            <Button className="gap-2 shadow-lg shadow-indigo-500/20">
+              <Sparkles className="h-4 w-4" />
+              Connect GitHub Repositories
+            </Button>
+          </a>
+        </Card>
       ) : filteredRepos.length === 0 ? (
         <Card className="flex flex-col items-center justify-center p-12 text-center">
           <FolderGit2 className="h-12 w-12 text-zinc-600 mb-4" />
-          <h3 className="text-sm font-semibold text-white mb-1">No repositories found</h3>
+          <h3 className="text-sm font-semibold text-white mb-1">No repositories match &quot;{search}&quot;</h3>
           <p className="text-xs text-zinc-500 max-w-xs mb-4">
-            Try adjusting your search filters or connect a new repository to get started.
+            Try adjusting your search filters to find what you&apos;re looking for.
           </p>
+          <Button variant="secondary" size="sm" onClick={() => setSearch("")} className="text-xs">
+            Clear Search Filter
+          </Button>
         </Card>
       ) : (
+
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filteredRepos.map((repo) => {
             const isSyncing = syncingRepoId === repo.id;
@@ -111,19 +131,27 @@ export default function RepositoriesPage() {
                       <div className="h-9 w-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0 group-hover:scale-105 transition-transform">
                         <FolderGit2 className="h-4.5 w-4.5" />
                       </div>
-                      <Badge variant={repo.private ? "warning" : "default"} className="text-[10px] px-2 py-0.5">
-                        {repo.private ? (
-                          <span className="flex items-center gap-1">
-                            <Lock className="h-2.5 w-2.5" />
-                            Private
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-1">
-                            <Globe className="h-2.5 w-2.5" />
-                            Public
-                          </span>
-                        )}
-                      </Badge>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <Badge variant={repo.private ? "warning" : "default"} className="text-[10px] px-2 py-0.5">
+                          {repo.private ? (
+                            <span className="flex items-center gap-1">
+                              <Lock className="h-2.5 w-2.5" />
+                              Private
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1">
+                              <Globe className="h-2.5 w-2.5" />
+                              Public
+                            </span>
+                          )}
+                        </Badge>
+                        {repo.customRulesCount && repo.customRulesCount > 0 ? (
+                          <Badge variant="info" className="text-[10px] px-2 py-0.5 bg-indigo-500/10 text-indigo-300 border-indigo-500/30">
+                            <FileCode className="h-2.5 w-2.5 mr-1 text-indigo-400" />
+                            {repo.customRulesCount} rules
+                          </Badge>
+                        ) : null}
+                      </div>
                     </div>
                     <a
                       href={`https://github.com/${repo.fullName}`}
@@ -142,14 +170,18 @@ export default function RepositoriesPage() {
                 </CardHeader>
                 <CardContent className="p-6 pt-0 space-y-5">
                   {/* Repo metrics */}
-                  <div className="grid grid-cols-2 gap-4 border-t border-b border-white/[0.06] py-4 bg-white/[0.01] rounded-xl px-3">
+                  <div className="grid grid-cols-3 gap-2 border-t border-b border-white/[0.06] py-4 bg-white/[0.01] rounded-xl px-3 text-center">
                     <div>
                       <p className="text-xl font-extrabold text-white">{repo._count.reviews}</p>
-                      <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">PR Reviews</p>
+                      <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Reviews</p>
                     </div>
                     <div>
                       <p className="text-xl font-extrabold text-emerald-400">{repo._count.memoryEntries}</p>
-                      <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Rules Extracted</p>
+                      <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Learned</p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-extrabold text-indigo-400">{repo.customRulesCount ?? 0}</p>
+                      <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">YAML Rules</p>
                     </div>
                   </div>
 

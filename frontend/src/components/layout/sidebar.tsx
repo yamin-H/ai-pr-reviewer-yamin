@@ -11,6 +11,10 @@ import {
   BookOpen,
   FolderGit2,
   GitBranch,
+  Settings,
+  Layers,
+  Gauge,
+  CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth/auth-provider";
@@ -24,6 +28,8 @@ const navGroups = [
       { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
       { href: "/dashboard/repos", label: "Repositories", icon: FolderGit2 },
       { href: "/dashboard/reviews", label: "Reviews", icon: GitPullRequest },
+      { href: "/dashboard/queue", label: "Queue", icon: Layers },
+      { href: "/dashboard/usage", label: "Usage", icon: Gauge },
     ],
   },
   {
@@ -32,6 +38,13 @@ const navGroups = [
       { href: "/dashboard/memory", label: "Team Memory", icon: Brain },
       { href: "/dashboard/digest", label: "Weekly Digest", icon: BookOpen },
       { href: "/dashboard/pipeline", label: "Agent Pipeline", icon: GitBranch },
+    ],
+  },
+  {
+    title: "PREFERENCES",
+    items: [
+      { href: "/dashboard/settings", label: "Settings", icon: Settings },
+      { href: "/dashboard/billing", label: "Billing & Plans", icon: CreditCard },
     ],
   },
 ];

@@ -12,6 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Brain } from "lucide-react";
 import type { MemoryStats } from "@/lib/types";
 
 const COLORS = ["#6366F1", "#8B5CF6", "#06B6D4", "#10B981", "#F59E0B", "#EF4444"];
@@ -34,7 +35,37 @@ const CustomTooltip = ({
   );
 };
 
-export function MemoryCharts({ stats }: { stats: MemoryStats }) {
+export function MemoryCharts({
+  stats,
+}: {
+  stats: MemoryStats;
+}) {
+  if (stats.totalEntries === 0) {
+    return (
+      <Card className="border border-white/[0.08] bg-[#0B0F1A]/90 p-6">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+              <Brain className="h-6 w-6" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-white">Team Memory Bank is Empty</h3>
+              <p className="text-xs text-zinc-400 max-w-xl leading-relaxed">
+                The Memory Bank uses pgvector RAG embeddings to recall how your senior engineers prefer code to be structured. It populates automatically when you approve or dismiss PR review comments, or when you scan past merged PRs.
+              </p>
+            </div>
+          </div>
+          <a
+            href="/dashboard/repos"
+            className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 px-4 py-2.5 text-xs font-semibold text-white shadow-lg shadow-emerald-500/20 transition-all"
+          >
+            <span>Scan Repositories to Seed Memory</span>
+          </a>
+        </div>
+      </Card>
+    );
+  }
+
   const decisionData = stats.byDecisionType.map((d) => ({
     name: d.decisionType,
     value: d._count.decisionType,
@@ -47,6 +78,7 @@ export function MemoryCharts({ stats }: { stats: MemoryStats }) {
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
+
       <Card>
         <CardHeader>
           <CardTitle>Decisions by Type</CardTitle>

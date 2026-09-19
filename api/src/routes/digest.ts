@@ -5,9 +5,10 @@ const router = Router()
 
 router.get('/preview', async (req: Request, res: Response) => {
     try {
-        const orgId = (req as any).user?.orgId
+        // requireAuth guarantees orgId is a non-empty string.
+        const orgId = (req as any).user.orgId as string
         const digests = await prisma.weeklyDigest.findMany({
-            where: orgId ? { orgId } : undefined,
+            where: { orgId },
             include: { org: true },
             orderBy: { weekOf: 'desc' },
             take: 10
@@ -18,6 +19,6 @@ router.get('/preview', async (req: Request, res: Response) => {
         console.error(err)
         res.status(500).json({ error: 'Failed to fetch digests' })
     }
-});
+})
 
-export default router
+export default router

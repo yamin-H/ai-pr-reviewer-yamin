@@ -5,12 +5,11 @@ const router = Router()
 
 router.get('/stats', async (req: Request, res: Response) => {
     try {
-        const orgId = (req as any).user?.orgId
-        const where = orgId ? { orgId } : undefined
+        // requireAuth guarantees orgId is a non-empty string.
+        const orgId = (req as any).user.orgId as string
+        const where = { orgId }
 
-        const totalEntries = await prisma.memoryEntry.count({
-            where
-        })
+        const totalEntries = await prisma.memoryEntry.count({ where })
 
         const byDecisionType = await prisma.memoryEntry.groupBy({
             by: ['decisionType'],
@@ -42,6 +41,6 @@ router.get('/stats', async (req: Request, res: Response) => {
         console.error(err)
         res.status(500).json({ error: 'Failed to fetch memory stats' })
     }
-});
+})
 
-export default router
+export default router

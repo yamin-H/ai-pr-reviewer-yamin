@@ -6,6 +6,7 @@ export interface ReviewJobData {
     repo: string;
     pr_number: number;
     installation_id: number;
+    head_sha?: string;
 }
 
 const reviewQueue = new Queue<ReviewJobData>('review-queue', {

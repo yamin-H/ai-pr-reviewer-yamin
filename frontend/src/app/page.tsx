@@ -126,21 +126,21 @@ export default function Home() {
                             )}
                         </div>
 
-                        {/* Trusted indicators */}
+                        {/* Product capability indicators — real, verifiable facts */}
                         <div className="pt-6 border-t border-white/[0.05] flex items-center justify-center lg:justify-start gap-8">
                             <div>
-                                <p className="text-2xl font-bold text-white">98%</p>
-                                <p className="text-xs text-zinc-500">Developer Approval</p>
+                                <p className="text-2xl font-bold text-white">RAG</p>
+                                <p className="text-xs text-zinc-500">Memory-Augmented</p>
                             </div>
                             <div className="h-8 w-px bg-white/[0.08]" />
                             <div>
-                                <p className="text-2xl font-bold text-white">&lt; 15s</p>
-                                <p className="text-xs text-zinc-500">Scan Duration</p>
+                                <p className="text-2xl font-bold text-white">llama3</p>
+                                <p className="text-xs text-zinc-500">70B Model</p>
                             </div>
                             <div className="h-8 w-px bg-white/[0.08]" />
                             <div>
-                                <p className="text-2xl font-bold text-white">100k+</p>
-                                <p className="text-xs text-zinc-500">PRs Audited</p>
+                                <p className="text-2xl font-bold text-white">pgvec</p>
+                                <p className="text-xs text-zinc-500">Vector Memory</p>
                             </div>
                         </div>
                     </div>

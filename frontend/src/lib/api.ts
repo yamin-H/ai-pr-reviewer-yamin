@@ -1,7 +1,13 @@
 import type {
+  BillingData,
   MemoryStats,
+  Organization,
   PRReview,
+  QueueStatusResponse,
   Repo,
+  ReviewsResponse,
+  SettingsData,
+  UsageData,
   User,
   WeeklyDigest,
 } from "./types";
@@ -62,7 +68,48 @@ export const api = {
       method: "POST",
     }),
 
-  getReviews: () => fetchApi<{ reviews: PRReview[] }>("/api/reviews"),
+  syncRepoRules: (id: string) =>
+    fetchApi<{ success: boolean; customRulesCount: number; rules: string[]; repo: Repo }>(`/api/repos/${id}/sync-rules`, {
+      method: "POST",
+    }),
+
+  getReviews: (params?: {
+    cursor?: string;
+    limit?: number;
+    repoId?: string;
+    status?: string;
+    from?: string;
+    to?: string;
+    search?: string;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.cursor) query.set("cursor", params.cursor);
+    if (params?.limit) query.set("limit", String(params.limit));
+    if (params?.repoId && params.repoId !== "all") query.set("repoId", params.repoId);
+    if (params?.status && params.status !== "all") query.set("status", params.status);
+    if (params?.from) query.set("from", params.from);
+    if (params?.to) query.set("to", params.to);
+    if (params?.search) query.set("search", params.search);
+    const qs = query.toString();
+    return fetchApi<ReviewsResponse>(qs ? `/api/reviews?${qs}` : "/api/reviews");
+  },
+
+  getReviewsExportUrl: (params?: {
+    repoId?: string;
+    status?: string;
+    from?: string;
+    to?: string;
+    search?: string;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.repoId && params.repoId !== "all") query.set("repoId", params.repoId);
+    if (params?.status && params.status !== "all") query.set("status", params.status);
+    if (params?.from) query.set("from", params.from);
+    if (params?.to) query.set("to", params.to);
+    if (params?.search) query.set("search", params.search);
+    const qs = query.toString();
+    return `${API_URL}/api/reviews/export/csv${qs ? `?${qs}` : ""}`;
+  },
 
   getReview: (id: string) =>
     fetchApi<{ review: PRReview }>(`/api/reviews/${id}`),
@@ -83,6 +130,32 @@ export const api = {
     
   checkOnboardStatus: (login: string) =>
     fetchApi<{ count: number; status: string }>(`/auth/install/onboard-status?login=${login}`),
+
+  getSettings: () => fetchApi<SettingsData>("/api/settings"),
+
+  updateOrgSettings: (data: { reviewSensitivity?: number; triggerOnSync?: boolean }) =>
+    fetchApi<{ success: boolean; org: Organization }>("/api/settings/org", {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+
+  updateRepoSettings: (repoId: string, data: { enabled: boolean }) =>
+    fetchApi<{ success: boolean; repo: Repo }>(`/api/settings/repos/${repoId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+
+  getJobs: () => fetchApi<QueueStatusResponse>("/api/jobs"),
+
+  getUsage: () => fetchApi<UsageData>("/api/usage"),
+
+  getBilling: () => fetchApi<BillingData>("/api/billing/subscription"),
+
+  selectPlan: (plan: string) =>
+    fetchApi<{ success: boolean; plan: string; message: string; quota: number }>("/api/billing/select-plan", {
+      method: "POST",
+      body: JSON.stringify({ plan }),
+    }),
 };
 
 export { ApiError };

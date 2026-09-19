@@ -10,6 +10,14 @@ export interface Organization {
   githubId: string;
   login: string;
   installationId: number;
+  isInstalled?: boolean;
+  uninstalledAt?: string | null;
+  plan?: string;
+  monthlyReviewCount?: number;
+  lastQuotaResetAt?: string;
+  planExpiresAt?: string | null;
+  reviewSensitivity?: number;
+  triggerOnSync?: boolean;
   createdAt: string;
 }
 
@@ -19,14 +27,22 @@ export interface Repo {
   name: string;
   fullName: string;
   private: boolean;
+  enabled?: boolean;
+  customRulesCount?: number;
   orgId: string;
   createdAt: string;
-  org: Organization;
+  org?: Organization;
   _count: {
     reviews: number;
     memoryEntries: number;
   };
 }
+
+export interface SettingsData {
+  org: Organization;
+  repos: Repo[];
+}
+
 
 export interface ReviewComment {
   id: string;
@@ -54,6 +70,7 @@ export interface PRReview {
   prNumber: number;
   prTitle: string | null;
   status: "pending" | "completed" | "failed";
+  riskScore?: number | null;
   commentUrl: string | null;
   filesReviewed: number;
   commentsCount: number;
@@ -64,6 +81,12 @@ export interface PRReview {
   repo: Repo;
   comments?: ReviewComment[];
   feedbackActions?: FeedbackAction[];
+}
+
+export interface ReviewsResponse {
+  reviews: PRReview[];
+  nextCursor: string | null;
+  totalCount: number;
 }
 
 export interface MemoryEntry {
@@ -105,3 +128,122 @@ export interface WeeklyDigest {
   orgId: string;
   org: Organization;
 }
+
+export interface QueueJob {
+  id: string;
+  reviewId: string;
+  repo: string;
+  prNumber: number;
+  prTitle?: string | null;
+  state: "active" | "waiting" | "completed" | "failed";
+  createdAt: string;
+  processedAt?: string | null;
+  finishedAt?: string | null;
+  durationMs?: number | null;
+  waitMs?: number | null;
+  failedReason?: string | null;
+  attemptsMade: number;
+}
+
+export interface QueueCounts {
+  active: number;
+  waiting: number;
+  completed: number;
+  failed: number;
+  delayed: number;
+}
+
+export interface QueueStatusResponse {
+  counts: QueueCounts;
+  jobs: QueueJob[];
+}
+
+export interface UsageOverview {
+  plan?: string;
+  reviewsThisMonth: number;
+  totalReviews: number;
+  monthlyQuota: number;
+  monthlyReviewCount?: number;
+  totalLLMCalls: number;
+  totalTokens: number;
+  promptTokens: number;
+  completionTokens: number;
+  monthTokens: number;
+  avgLatencyMs: number;
+  monthStart: string;
+}
+
+export interface DailyUsage {
+  date: string;
+  reviews: number;
+  tokens: number;
+  llmCalls: number;
+}
+
+export interface RepoUsage {
+  id: string;
+  name: string;
+  fullName: string;
+  private: boolean;
+  reviewsCount: number;
+  totalTokens: number;
+  llmCalls: number;
+  avgDurationMs: number;
+}
+
+export interface UsageAuditRecord {
+  id: string;
+  eventType: string;
+  model: string;
+  llmCalls: number;
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+  durationMs: number;
+  createdAt: string;
+  repo: string;
+  reviewId?: string | null;
+}
+
+export interface UsageData {
+  overview: UsageOverview;
+  dailyUsage: DailyUsage[];
+  byRepo: RepoUsage[];
+  recentEvents: UsageAuditRecord[];
+}
+
+export interface BillingSubscription {
+  plan: "free" | "pro" | "enterprise";
+  planName: string;
+  status: string;
+  price: number;
+  billingPeriod: string;
+  monthlyReviewCount: number;
+  monthlyQuota: number;
+  quotaUsedPercent: number;
+  lastQuotaResetAt: string;
+  nextQuotaResetAt: string;
+  planExpiresAt?: string | null;
+}
+
+export interface BillingTier {
+  id: "free" | "pro" | "enterprise";
+  name: string;
+  price: number;
+  billingPeriod: string;
+  quota: number;
+  concurrency: number;
+  features: string[];
+  description: string;
+  isCurrent: boolean;
+}
+
+export interface BillingData {
+  organization: {
+    id: string;
+    login: string;
+  };
+  subscription: BillingSubscription;
+  tiers: BillingTier[];
+}
+

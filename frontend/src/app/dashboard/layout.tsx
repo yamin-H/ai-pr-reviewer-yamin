@@ -82,7 +82,7 @@ export default function DashboardLayout({
               </span>
               <span className="text-[11px] font-medium text-zinc-300">Agent Core 2.0</span>
               <span className="text-zinc-600">|</span>
-              <span className="text-[10px] font-mono text-emerald-400 font-semibold">18ms</span>
+              <span className="text-[10px] font-medium text-emerald-400">Live</span>
             </div>
 
             <a

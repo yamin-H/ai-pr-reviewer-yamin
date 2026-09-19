@@ -1,14 +1,13 @@
 import { Router, Request, Response } from 'express'
 import { getInstallationOctokit } from '../lib/octokit.js'
 import { prisma } from '../lib/prisma.js'
-import { emitPipelineEvent, getPipelineHistory, pipelineEmitter, PipelineEvent } from '../lib/pipelineEvents.js'
+import { emitPipelineEvent, getPipelineHistory, createSubscriber, PipelineEvent } from '../lib/pipelineEvents.js'
 import { requireInternalAuth } from '../middleware/internalAuth.js'
 
 const router = Router()
 
 router.post('/installation-token', requireInternalAuth, async (req: Request, res: Response) => {
     const { installation_id } = req.body
-
 
     if (!installation_id) {
         res.status(400).json({ error: 'installation_id required' })
@@ -22,7 +21,7 @@ router.post('/installation-token', requireInternalAuth, async (req: Request, res
         console.error('Failed to get installation token:', err)
         res.status(500).json({ error: 'Failed to get installation token' })
     }
-});
+})
 
 router.post('/review-complete', requireInternalAuth, async (req: Request, res: Response) => {
     const { job_id, comments_count, comment_url, status } = req.body
@@ -44,7 +43,7 @@ router.post('/review-complete', requireInternalAuth, async (req: Request, res: R
         })
         console.log(`✓ Review ${job_id} marked as ${status || 'completed'} with ${comments_count} comments`)
 
-        // Emit terminal event for SSE clients
+        // Fire-and-forget — emitPipelineEvent catches its own errors internally.
         emitPipelineEvent({
             job_id,
             review_id: job_id,
@@ -59,11 +58,10 @@ router.post('/review-complete', requireInternalAuth, async (req: Request, res: R
         console.error('Failed to update review status:', err)
         res.status(500).json({ error: 'DB update failed' })
     }
-});
+})
 
-router.post('/pipeline-update', requireInternalAuth, (req: Request, res: Response) => {
+router.post('/pipeline-update', requireInternalAuth, async (req: Request, res: Response) => {
     const { job_id, node, status, message, meta } = req.body
-    console.log(`[Pipeline] Received: ${node} → ${status} for job ${job_id}`)
 
     if (!job_id || !node) {
         res.status(400).json({ error: 'job_id and node required' })
@@ -80,29 +78,42 @@ router.post('/pipeline-update', requireInternalAuth, (req: Request, res: Respons
         timestamp: new Date().toISOString()
     }
 
+    // Fire-and-forget — emitPipelineEvent catches its own errors internally.
     emitPipelineEvent(event)
     console.log(`[Pipeline] ${job_id} — ${node}: ${status}`)
     res.json({ ok: true })
-});
+})
 
-export function handlePipelineStream(req: Request, res: Response) {
-    const job_id = req.params.job_id as string 
+/**
+ * SSE endpoint for the pipeline visualizer.
+ * Each connecting client gets its own Redis subscriber so events are
+ * delivered across all API replicas — not just the one that processed
+ * the review job.
+ */
+export async function handlePipelineStream(req: Request, res: Response): Promise<void> {
+    const job_id = req.params.job_id as string
 
     res.setHeader('Content-Type', 'text/event-stream')
     res.setHeader('Cache-Control', 'no-cache')
     res.setHeader('Connection', 'keep-alive')
     res.flushHeaders()
 
-    const history = getPipelineHistory(job_id)
+    // Replay history so clients joining mid-review or after completion
+    // immediately see all past events.
+    const history = await getPipelineHistory(job_id)
     for (const event of history) {
         res.write(`data: ${JSON.stringify(event)}\n\n`)
     }
 
-    const handler = (event: PipelineEvent) => {
-        res.write(`data: ${JSON.stringify(event)}\n\n`)
-    }
+    // Create a dedicated subscriber for this SSE connection.
+    const subscriber = createSubscriber()
+    const channel = `pipeline:${job_id}`
 
-    pipelineEmitter.on(`pipeline:${job_id}`, handler)
+    await subscriber.subscribe(channel)
+
+    subscriber.on('message', (_chan: string, message: string) => {
+        res.write(`data: ${message}\n\n`)
+    })
 
     const heartbeat = setInterval(() => {
         res.write(': ping\n\n')
@@ -110,13 +121,11 @@ export function handlePipelineStream(req: Request, res: Response) {
 
     req.on('close', () => {
         clearInterval(heartbeat)
-        pipelineEmitter.off(`pipeline:${job_id}`, handler)
+        subscriber.unsubscribe(channel).catch(() => {})
+        subscriber.disconnect()
     })
 }
 
 router.get('/pipeline-stream/:job_id', handlePipelineStream)
 
-
-
-
-export default router
+export default router

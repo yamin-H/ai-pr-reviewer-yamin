@@ -10,16 +10,25 @@ datasource db {
 }
 
 model Organization {
-    id             String         @id @default(cuid())
-    githubId       String         @unique
-    login          String         @unique
-    installationId Int            @unique
-    createdAt      DateTime       @default(now())
-    users          User[]
-    repos          Repo[]
-    reviews        PRReview[]
-    digests        WeeklyDigest[]
-    memoryEntries  MemoryEntry[]
+    id                String         @id @default(cuid())
+    githubId          String         @unique
+    login             String         @unique
+    installationId    Int            @unique
+    createdAt         DateTime       @default(now())
+    isInstalled       Boolean        @default(true)
+    uninstalledAt     DateTime?
+    reviewSensitivity Float          @default(0.5) // confidence threshold (0.1 to 0.9)
+    triggerOnSync     Boolean        @default(true) // review on PR synchronize (new commits)
+    plan              String         @default("free") // "free" | "pro" | "enterprise"
+    monthlyReviewCount Int           @default(0)
+    lastQuotaResetAt  DateTime       @default(now())
+    planExpiresAt     DateTime?
+    users             User[]
+    repos             Repo[]
+    reviews           PRReview[]
+    digests           WeeklyDigest[]
+    memoryEntries     MemoryEntry[]
+    usageEvents       UsageEvent[]
 }
 
 model User {
@@ -39,10 +48,13 @@ model Repo {
     name          String
     fullName      String
     private       Boolean       @default(false)
+    enabled       Boolean       @default(true) // whether AI reviews are active for this repo
+    customRulesCount Int        @default(0) // count of active custom rules from .powerful.yml
     orgId         String
     org           Organization  @relation(fields: [orgId], references: [id])
     reviews       PRReview[]
     memoryEntries MemoryEntry[]
+    usageEvents   UsageEvent[]
     createdAt     DateTime      @default(now())
 }
 
@@ -51,6 +63,7 @@ model PRReview {
     prNumber        Int
     prTitle         String?
     status          String           @default("pending") // pending | completed | failed
+    riskScore       Int?             // 0-100 computed risk score
     commentUrl      String?
     filesReviewed   Int              @default(0)
     commentsCount   Int              @default(0)
@@ -120,3 +133,21 @@ model WeeklyDigest {
     orgId           String
     org             Organization @relation(fields: [orgId], references: [id])
 }
+
+model UsageEvent {
+    id               String        @id @default(cuid())
+    eventType        String        @default("pr_review") // "pr_review" | "digest" | "historical_sync"
+    model            String        @default("llama-3.3-70b-versatile")
+    llmCalls         Int           @default(1)
+    promptTokens     Int           @default(0)
+    completionTokens Int           @default(0)
+    totalTokens      Int           @default(0)
+    durationMs       Int           @default(0)
+    createdAt        DateTime      @default(now())
+    orgId            String
+    org              Organization  @relation(fields: [orgId], references: [id])
+    repoId           String?
+    repo             Repo?         @relation(fields: [repoId], references: [id])
+    reviewId         String?
+}
+
