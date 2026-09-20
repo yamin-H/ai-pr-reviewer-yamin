@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Powerful — AI-Powered PR Review Agent",
-  description: "Review every Pull Request with your team's historical context, learning patterns, and automated insights.",
+  title: "Powerful — Code reviews that learn from your team",
+  description: "Autonomous AI GitHub PR reviews with vector memory, risk scoring, and custom engineering rules.",
 };
 
 export default function RootLayout({

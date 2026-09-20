@@ -1,400 +1,68 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import {
-  Brain,
-  GitPullRequest,
-  Sparkles,
   ArrowRight,
-  ShieldCheck,
-  Zap,
-  Code2,
+  Brain,
   Check,
   ChevronRight,
-  Copy,
-  Terminal,
-  Activity,
-  Layers,
-  FileCode,
-  Lock,
+  Clipboard,
+  GitBranch,
+  Menu,
+  Network,
+  Sparkles,
 } from "lucide-react";
-import { motion } from "framer-motion";
-import { useAuth } from "@/components/auth/auth-provider";
 import { Button } from "@/components/ui/button";
-import { ReviewSimulator } from "@/components/home/review-simulator";
-import { PipelineExplorer } from "@/components/home/pipeline-explorer";
-import { RiskCalculator } from "@/components/home/risk-calculator";
-import { ComparisonMatrix } from "@/components/home/comparison-matrix";
-import { InteractiveBackground } from "@/components/home/interactive-background";
-import { ThemeToggle } from "@/components/theme/theme-provider";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/components/auth/auth-provider";
 
-const SAMPLE_YAML = `# .powerful.yml — Declarative Repository Review Guidelines
+const yaml = `# .powerful.yml
 rules:
-  - "Never log raw bearer tokens or authorization headers in plain text"
-  - "Always use parameterized Prisma.sql template tags for raw queries"
-  - "Enforce limit pagination (max: 50) on public list endpoints"
-  - "Require idempotent transaction wrappers on stripe webhook handlers"
-`;
+  - Never log raw tokens or authorization headers
+  - Use parameterized queries for all database access
+  - Require pagination on public list endpoints
+  - Wrap payment webhooks in idempotent transactions`;
+
+const pipeline = ["fetch_pr", "fetch_config", "chunk_changes", "search_memory", "score_risk", "llm_review", "post_comments", "notify_complete"];
+
+function FadeIn({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+  return <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.6, delay }} className={className}>{children}</motion.div>;
+}
+
+function Logo() {
+  return <Link href="/" className="flex items-center gap-3" aria-label="Powerful home"><span className="grid size-9 place-items-center rounded-xl bg-[#7C3AED] text-white shadow-lg shadow-violet-200"><Sparkles className="size-4" /></span><span className="text-lg font-extrabold tracking-tight text-[#1A1A2E]">Powerful</span><Badge className="hidden rounded-full border-0 bg-[#EDE9FE] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#7C3AED] sm:inline-flex">Agent</Badge></Link>;
+}
+
+function ReviewCard() {
+  return <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="relative mx-auto max-w-xl rounded-2xl border border-[#E5E7EB] bg-white p-5 text-left shadow-2xl shadow-violet-200/70 sm:p-7">
+    <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-violet-200/40 blur-2xl" />
+    <div className="flex items-start justify-between gap-4 border-b border-[#E5E7EB] pb-4"><div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-lg bg-[#1A1A2E] text-white"><GitBranch className="size-4" /></span><div><p className="text-[11px] font-semibold uppercase tracking-wider text-[#9CA3AF]">Pull request #284</p><p className="font-mono text-sm font-bold text-[#1A1A2E]">feat: add user authentication middleware</p></div></div><Badge className="shrink-0 rounded-full border-0 bg-red-50 px-2.5 py-1 text-[10px] font-bold text-red-600">RISK: 84/100</Badge></div>
+    <div className="mt-5 rounded-xl border border-red-100 bg-red-50/60 p-4"><div className="mb-3 flex items-center gap-2 text-xs font-bold text-[#1A1A2E]"><span className="grid size-6 place-items-center rounded-md bg-[#7C3AED] text-white"><Sparkles className="size-3" /></span>Powerful Agent <span className="font-normal text-[#9CA3AF]">· just now</span></div><p className="text-sm leading-6 text-[#374151]">Raw authorization token logged to stdout on line 100. Use <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs text-[#7C3AED]">hashToken()</code> instead.</p><p className="mt-3 text-xs font-semibold text-[#7C3AED]">99% confidence · learned from 12 approved rules</p></div>
+    <div className="mt-5 flex items-center justify-between gap-3"><span className="text-xs text-[#9CA3AF]">Suggested change found in memory</span><div className="flex gap-2"><Button variant="ghost" size="sm" className="text-xs">Dismiss</Button><Button size="sm" className="gap-1.5 rounded-lg bg-[#7C3AED] text-xs hover:bg-[#5B21B6]">Approve &amp; save rule <Check className="size-3.5" /></Button></div></div>
+  </motion.div>;
+}
+
+function MemoryMockup() { return <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-xl"><div className="flex items-center justify-between border-b border-[#F0F0F0] pb-4"><div className="flex items-center gap-2"><Brain className="size-4 text-[#7C3AED]" /><span className="text-sm font-bold text-[#1A1A2E]">Team memory bank</span></div><Badge variant="muted" className="font-mono text-[10px]">v2.0 pgvector</Badge></div><div className="flex flex-col gap-3 py-4">{["Never log raw authorization tokens", "Use typed error boundaries in API routes", "Prefer cursor pagination over offset"] .map((rule, i) => <div key={rule} className="flex items-start gap-3 rounded-xl bg-[#F8F7FC] p-3"><span className="grid size-5 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-600"><Check className="size-3" /></span><div><p className="text-xs font-semibold text-[#374151]">{rule}</p><p className="mt-1 font-mono text-[10px] text-[#9CA3AF]">approved_rule_{String(i + 1).padStart(2, "0")} · 98% match</p></div></div>)}</div><div className="border-t border-[#F0F0F0] pt-4 text-xs font-semibold text-[#7C3AED]">Shared with your whole team →</div></div>; }
+
+function PipelineMockup() { return <div className="overflow-hidden rounded-2xl border border-violet-200 bg-white p-5 shadow-xl"><div className="mb-5 flex items-center justify-between"><div className="flex items-center gap-2 text-sm font-bold text-[#1A1A2E]"><Network className="size-4 text-[#7C3AED]" />Review pipeline</div><span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-600"><span className="size-1.5 rounded-full bg-emerald-500" /> live</span></div><div className="flex min-w-[620px] items-center gap-1">{pipeline.map((node, i) => <div key={node} className="flex items-center gap-1"><div className={`rounded-lg border px-2 py-2 text-center font-mono text-[9px] font-semibold ${i === 4 ? "border-[#7C3AED] bg-[#7C3AED] text-white shadow-lg shadow-violet-200" : "border-[#E5E7EB] bg-[#FAFAFA] text-[#6B7280]"}`}>{node}</div>{i < pipeline.length - 1 && <ArrowRight className="size-3 shrink-0 text-[#C4B5FD]" />}</div>)}</div><p className="mt-5 font-mono text-[10px] text-[#9CA3AF]">8 stages completed in 1.14s</p></div>; }
+
+function RiskMockup() { return <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 text-center shadow-xl"><div className="mx-auto grid size-44 place-items-center rounded-full" style={{ background: "conic-gradient(#ef4444 0deg 302deg, #FEE2E2 302deg 360deg)" }}><div className="grid size-32 place-items-center rounded-full bg-white"><div><p className="text-3xl font-black tracking-tight text-[#1A1A2E]">84</p><p className="text-[10px] font-bold uppercase tracking-wider text-red-500">out of 100</p></div></div></div><div className="mt-6 grid grid-cols-2 gap-2">{["Diff 30pt", "Files 20pt", "Critical 35pt", "Dismiss 15pt"].map((item) => <span key={item} className="rounded-lg bg-red-50 px-3 py-2 text-[11px] font-bold text-red-600">{item}</span>)}</div></div>; }
 
 export default function Home() {
   const { user } = useAuth();
-  const [copiedYaml, setCopiedYaml] = useState(false);
-
-  const handleCopyYaml = () => {
-    navigator.clipboard.writeText(SAMPLE_YAML);
-    setCopiedYaml(true);
-    setTimeout(() => setCopiedYaml(false), 2000);
-  };
-
-  return (
-    <div className="relative min-h-screen bg-[#04060B] text-zinc-100 overflow-x-hidden font-sans selection:bg-indigo-500 selection:text-white">
-      {/* Interactive Neural Canvas with Smooth Mouse Interaction */}
-      <InteractiveBackground />
-
-      {/* Ambient background glow layers */}
-      <div className="fixed inset-0 bg-dot-grid opacity-30 pointer-events-none" />
-      <div className="fixed top-[-20%] left-[-15%] w-[60vw] h-[60vw] rounded-full bg-gradient-to-br from-indigo-600/15 via-violet-600/10 to-transparent blur-[120px] pointer-events-none" />
-      <div className="fixed top-[40%] right-[-15%] w-[55vw] h-[55vw] rounded-full bg-gradient-to-br from-emerald-600/10 via-indigo-600/10 to-transparent blur-[140px] pointer-events-none" />
-      <div className="fixed bottom-[-10%] left-[20%] w-[50vw] h-[50vw] rounded-full bg-gradient-to-tr from-violet-600/15 to-transparent blur-[120px] pointer-events-none" />
-
-      {/* Top Telemetry Ticker */}
-      <div className="relative z-20 border-b border-white/[0.06] bg-[#070A14]/80 backdrop-blur-md px-6 py-2">
-        <div className="max-w-7xl mx-auto flex items-center justify-between text-[11px] font-mono text-zinc-400">
-          <div className="flex items-center gap-6 overflow-x-auto py-0.5 no-scrollbar">
-            <span className="flex items-center gap-1.5 text-emerald-400 font-semibold shrink-0">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping inline-block" />
-              Engine v2.0 Operational
-            </span>
-            <span className="hidden sm:inline-block text-zinc-600">|</span>
-            <span className="shrink-0 flex items-center gap-1 text-zinc-300">
-              <Activity className="h-3 w-3 text-indigo-400" />
-              Avg Review Speed: <strong className="text-white">1.14s</strong>
-            </span>
-            <span className="hidden md:inline-block text-zinc-600">|</span>
-            <span className="shrink-0 hidden md:flex items-center gap-1 text-zinc-300">
-              <Brain className="h-3 w-3 text-violet-400" />
-              Memory Recall Accuracy: <strong className="text-white">98.4%</strong>
-            </span>
-            <span className="hidden lg:inline-block text-zinc-600">|</span>
-            <span className="shrink-0 hidden lg:flex items-center gap-1 text-zinc-300">
-              <ShieldCheck className="h-3 w-3 text-emerald-400" />
-              Zero Hallucination AST Chunking
-            </span>
-          </div>
-
-          <div className="hidden sm:flex items-center gap-2 shrink-0">
-            <span className="text-[10px] uppercase font-bold text-zinc-500 bg-white/[0.04] px-2 py-0.5 rounded border border-white/[0.06]">
-              Groq Llama 3.3 70B
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Header / Navigation */}
-      <header className="relative z-20 mx-auto max-w-7xl px-6 h-20 flex items-center justify-between border-b border-white/[0.05]">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/25 border border-indigo-400/30">
-            <Sparkles className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <span className="text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
-              Powerful
-              <span className="text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.2 rounded uppercase">
-                Agent
-              </span>
-            </span>
-            <span className="block text-[10px] text-zinc-400 font-medium uppercase tracking-wider">
-              Autonomous PR Reviewer
-            </span>
-          </div>
-        </div>
-
-        <nav className="hidden md:flex items-center gap-6 text-xs font-medium text-zinc-400">
-          <a href="#simulator" className="hover:text-white transition-colors">
-            Interactive Playground
-          </a>
-          <a href="#pipeline" className="hover:text-white transition-colors">
-            LangGraph Architecture
-          </a>
-          <a href="#risk" className="hover:text-white transition-colors">
-            Risk Engine
-          </a>
-          <a href="#comparison" className="hover:text-white transition-colors">
-            Why Powerful
-          </a>
-          <a href="#quickstart" className="hover:text-white transition-colors">
-            Configuration
-          </a>
-        </nav>
-
-        <div className="flex items-center gap-3">
-          <ThemeToggle />
-          {user ? (
-            <Link href="/dashboard">
-              <Button size="sm" className="gap-2 shadow-lg shadow-indigo-500/20">
-                Open Dashboard
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          ) : (
-            <Link href="/install">
-              <Button size="sm" className="gap-2 shadow-lg shadow-indigo-500/25">
-                Connect GitHub
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          )}
-        </div>
-      </header>
-
-      {/* Hero Section */}
-      <section className="relative z-10 mx-auto max-w-7xl px-6 pt-16 pb-20 md:pt-24 md:pb-28">
-        <div className="text-center max-w-4xl mx-auto space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-4 py-1.5 text-xs font-medium text-indigo-300 backdrop-blur-md shadow-inner">
-            <Zap className="h-3.5 w-3.5 text-indigo-400" />
-            <span>Autonomous PR Review with Vector Memory Bank</span>
-          </div>
-
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.08]">
-            Code reviews that{" "}
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-violet-400 to-emerald-400">
-              learn from your team&apos;s history
-            </span>
-            .
-          </h1>
-
-          <p className="max-w-2xl mx-auto text-base sm:text-lg text-zinc-400 leading-relaxed font-normal">
-            Generic AI bots repeat the same dismissed nitpicks. Powerful stores approved feedback in an autonomous PostgreSQL pgvector Memory Bank, learns your codebase conventions, and scores pull requests before they merge.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-            {user ? (
-              <Link href="/dashboard">
-                <Button size="lg" className="w-full sm:w-auto gap-2 text-sm shadow-xl shadow-indigo-500/25">
-                  Enter Engineering Dashboard
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            ) : (
-              <>
-                <Link href="/install" className="w-full sm:w-auto">
-                  <Button size="lg" className="w-full gap-2 text-sm shadow-xl shadow-indigo-500/30">
-                    Install GitHub App
-                    <GitPullRequest className="h-4 w-4" />
-                  </Button>
-                </Link>
-                <a href="#simulator" className="w-full sm:w-auto">
-                  <Button variant="secondary" size="lg" className="w-full gap-2 text-sm">
-                    Try Interactive Playground
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </a>
-              </>
-            )}
-          </div>
-
-          {/* Architecture Badge Strip */}
-          <div className="pt-10 flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs text-zinc-400 font-mono">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02]">
-              <Layers className="h-3.5 w-3.5 text-indigo-400" />
-              <span>Linear LangGraph v0.2</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02]">
-              <Brain className="h-3.5 w-3.5 text-violet-400" />
-              <span>PostgreSQL pgvector RAG</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02]">
-              <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
-              <span>Groq Llama 3.3 70B</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02]">
-              <FileCode className="h-3.5 w-3.5 text-amber-400" />
-              <span>.powerful.yml Rule Engine</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Flagship Feature 1: Live Interactive Review Simulator */}
-      <section id="simulator" className="relative z-10 mx-auto max-w-7xl px-6 py-16 scroll-mt-20">
-        <div className="text-center max-w-2xl mx-auto mb-10 space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-400">
-            <Sparkles className="h-3 w-3" />
-            Interactive Playground
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
-            Experience the Agent in Action
-          </h2>
-          <p className="text-xs sm:text-sm text-zinc-400">
-            Choose a Pull Request diff below, click &quot;Simulate Review&quot;, and approve suggestions to see rules commit into the live memory bank.
-          </p>
-        </div>
-
-        <ReviewSimulator />
-      </section>
-
-      {/* Flagship Feature 2: LangGraph Execution Pipeline Explorer */}
-      <section id="pipeline" className="relative z-10 mx-auto max-w-7xl px-6 py-20 border-t border-white/[0.05] scroll-mt-20">
-        <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-xs font-semibold text-indigo-400">
-            <Layers className="h-3 w-3" />
-            Under the Hood
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
-            Linear LangGraph Architecture
-          </h2>
-          <p className="text-xs sm:text-sm text-zinc-400">
-            Every pull request passes through an 8-stage state machine that isolates context extraction, AST segmenting, pgvector search, and atomic GitHub dispatching.
-          </p>
-        </div>
-
-        <PipelineExplorer />
-      </section>
-
-      {/* Flagship Feature 3: PR Risk Scoring Engine */}
-      <section id="risk" className="relative z-10 mx-auto max-w-7xl px-6 py-20 border-t border-white/[0.05] scroll-mt-20">
-        <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-xs font-semibold text-amber-400">
-            <ShieldCheck className="h-3 w-3" />
-            Risk Prevention
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
-            Autonomous PR Risk Scoring
-          </h2>
-          <p className="text-xs sm:text-sm text-zinc-400">
-            Adjust the diff size, file count, and historical team dismissal rates below to compute the live composite score and see the exact GitHub commit check status Powerful posts.
-          </p>
-        </div>
-
-        <RiskCalculator />
-      </section>
-
-      {/* Flagship Feature 4: Generic AI vs Powerful Comparison */}
-      <section id="comparison" className="relative z-10 mx-auto max-w-7xl px-6 py-20 border-t border-white/[0.05] scroll-mt-20">
-        <ComparisonMatrix />
-      </section>
-
-      {/* Flagship Feature 5: Declarative YAML Rule Config & Quickstart */}
-      <section id="quickstart" className="relative z-10 mx-auto max-w-7xl px-6 py-20 border-t border-white/[0.05] scroll-mt-20">
-        <div className="grid lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-6 space-y-6">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-xs font-semibold text-violet-400">
-              <FileCode className="h-3 w-3" />
-              Zero Configuration Drift
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
-              Declare Custom Standards in <code className="text-indigo-400 font-mono">.powerful.yml</code>
-            </h2>
-            <p className="text-sm text-zinc-400 leading-relaxed">
-              Store repository-specific guidelines right beside your code. Powerful reads your config on every Pull Request, merges them with historical team conventions from pgvector, and enforces them strictly.
-            </p>
-
-            <div className="space-y-3 text-xs text-zinc-300">
-              <div className="flex items-center gap-3">
-                <div className="h-6 w-6 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0 font-bold">
-                  1
-                </div>
-                <span>Connect your GitHub personal account or team organization in one click.</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="h-6 w-6 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0 font-bold">
-                  2
-                </div>
-                <span>Add a <code className="font-mono text-indigo-300">.powerful.yml</code> file to your repository root for custom rules.</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="h-6 w-6 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0 font-bold">
-                  3
-                </div>
-                <span>Open Pull Requests. The agent reviews in ~1.1s and gets smarter with every approved comment.</span>
-              </div>
-            </div>
-
-            <div className="pt-2">
-              <Link href="/install">
-                <Button size="lg" className="gap-2 text-xs font-semibold shadow-lg shadow-indigo-500/25">
-                  Get Started with GitHub
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          {/* Code Window */}
-          <div className="lg:col-span-6 rounded-2xl border border-white/[0.08] bg-[#070A14] overflow-hidden shadow-2xl">
-            <div className="flex items-center justify-between border-b border-white/[0.06] bg-[#0D1222] px-4 py-3">
-              <div className="flex items-center gap-2">
-                <div className="flex gap-1.5">
-                  <span className="h-3 w-3 rounded-full bg-red-500/60" />
-                  <span className="h-3 w-3 rounded-full bg-yellow-500/60" />
-                  <span className="h-3 w-3 rounded-full bg-green-500/60" />
-                </div>
-                <span className="ml-2 text-xs font-mono text-zinc-400">.powerful.yml</span>
-              </div>
-
-              <button
-                onClick={handleCopyYaml}
-                className="flex items-center gap-1 text-[11px] text-zinc-400 hover:text-white px-2.5 py-1 rounded bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-colors cursor-pointer"
-              >
-                {copiedYaml ? (
-                  <>
-                    <Check className="h-3 w-3 text-emerald-400" />
-                    <span className="text-emerald-400 font-semibold">Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="h-3 w-3" />
-                    <span>Copy Config</span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            <pre className="p-5 text-xs font-mono text-zinc-300 overflow-x-auto leading-relaxed">
-              <code>{SAMPLE_YAML}</code>
-            </pre>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="relative z-10 border-t border-white/[0.06] py-12 bg-[#030509]">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600">
-              <Sparkles className="h-4 w-4 text-white" />
-            </div>
-            <div>
-              <span className="text-sm font-bold text-white tracking-tight">
-                Powerful AI
-              </span>
-              <span className="block text-[10px] text-zinc-500 font-mono">
-                Autonomous PR Review SaaS
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-6 text-xs text-zinc-500">
-            <Link href="/dashboard" className="hover:text-zinc-300 transition-colors">
-              Dashboard
-            </Link>
-            <Link href="/install" className="hover:text-zinc-300 transition-colors">
-              GitHub App
-            </Link>
-            <a href="#pipeline" className="hover:text-zinc-300 transition-colors">
-              Architecture
-            </a>
-            <a href="#simulator" className="hover:text-zinc-300 transition-colors">
-              Simulator
-            </a>
-          </div>
-
-          <p className="text-xs text-zinc-600 font-mono">
-            &copy; 2026 Powerful. Production-Grade AI Engineering.
-          </p>
-        </div>
-      </footer>
-    </div>
-  );
+  const [copied, setCopied] = useState(false);
+  return <main className="min-h-screen overflow-hidden bg-[#F5F3EF] text-[#1A1A2E]">
+    <header className="sticky top-0 z-50 border-b border-[#E5E7EB] bg-white"><div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-5 lg:px-8"><Logo /><nav className="hidden items-center gap-8 text-sm font-medium text-[#374151] lg:flex"><a href="#features" className="hover:text-[#7C3AED]">Features</a><a href="#architecture" className="hover:text-[#7C3AED]">Architecture</a><a href="#risk" className="hover:text-[#7C3AED]">Risk Engine</a><a href="#pricing" className="hover:text-[#7C3AED]">Pricing</a></nav><div className="flex items-center gap-3"><Link href={user ? "/dashboard" : "/install"} className="hidden text-sm font-semibold text-[#374151] sm:block">{user ? "Dashboard" : "Log in"}</Link><Link href="/install"><Button className="rounded-full bg-[#7C3AED] px-5 hover:bg-[#5B21B6]">Connect GitHub <ArrowRight data-icon="inline-end" /></Button></Link><Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open menu"><Menu /></Button></div></div></header>
+    <section className="px-5 pb-24 pt-20 sm:pt-28"><div className="mx-auto max-w-4xl text-center"><p className="mb-6 text-xs font-bold uppercase tracking-[0.18em] text-[#7C3AED]">Autonomous PR Review · Vector Memory Bank</p><h1 className="text-5xl font-black leading-[0.98] tracking-[-0.05em] sm:text-7xl lg:text-8xl">Code reviews that learn<br className="hidden sm:block" /> from your team.</h1><p className="mx-auto mt-7 max-w-xl text-lg leading-8 text-[#6B7280]">Powerful remembers every approved suggestion and gets smarter with every PR — no repeated nitpicks, ever.</p><div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row"><Link href="/install"><Button size="lg" className="rounded-full bg-[#7C3AED] px-8 hover:bg-[#5B21B6]">Connect GitHub <ArrowRight data-icon="inline-end" /></Button></Link><a href="#features"><Button size="lg" variant="outline" className="rounded-full border-[#1A1A2E] px-8 text-[#1A1A2E]">See it in action</Button></a></div><p className="mt-5 text-xs font-medium text-[#9CA3AF]">No credit card required · Free for 50 PRs/month</p><div className="mt-16"><ReviewCard /></div></div></section>
+    <section className="border-y border-[#E5E7EB] bg-white"><div className="mx-auto flex max-w-6xl flex-wrap justify-center divide-x divide-[#E5E7EB] py-5 text-center">{["1.14s avg review speed", "98.4% memory recall accuracy", "8-stage LangGraph pipeline", "Groq Llama 3.3 70B"].map((item) => <div key={item} className="px-5 py-2 text-xs font-bold text-[#1A1A2E] sm:px-7 sm:text-sm">{item}</div>)}</div></section>
+    <section id="features" className="bg-white"><div className="mx-auto max-w-7xl px-5 py-24 lg:px-8"><FadeIn className="grid items-center gap-12 lg:grid-cols-2 lg:gap-24"><div><Badge className="mb-6 rounded-full border-0 bg-[#EDE9FE] text-[#7C3AED]">🧠 Vector Memory</Badge><h2 className="text-4xl font-black leading-tight tracking-[-0.04em] sm:text-5xl">Stops repeating itself. Learns your team.</h2><p className="mt-5 max-w-lg text-lg leading-8 text-[#6B7280]">Every approved suggestion is stored as a vector embedding. Future PRs touching similar code get smarter reviews automatically.</p><a href="#architecture" className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-[#7C3AED]">Learn more <ArrowRight className="size-4" /></a></div><MemoryMockup /></FadeIn></div></section>
+    <section id="architecture" className="bg-gradient-to-br from-[#EDE9FE] to-[#F5F3FF]"><div className="mx-auto max-w-7xl px-5 py-24 lg:px-8"><FadeIn className="grid items-center gap-12 lg:grid-cols-2 lg:gap-24"><div className="order-2 lg:order-1"><PipelineMockup /></div><div className="order-1 lg:order-2"><Badge className="mb-6 rounded-full border-0 bg-white text-[#7C3AED]">⚡ LangGraph Pipeline</Badge><h2 className="text-4xl font-black leading-tight tracking-[-0.04em] sm:text-5xl">8 stages. Sub-second latency.</h2><p className="mt-5 max-w-lg text-lg leading-8 text-[#6B7280]">From webhook to inline GitHub comment in under 1.5 seconds. Every PR passes through a deterministic state machine.</p><a href="#how-it-works" className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-[#7C3AED]">Learn more <ArrowRight className="size-4" /></a></div></FadeIn></div></section>
+    <section id="risk" className="bg-white"><div className="mx-auto max-w-7xl px-5 py-24 lg:px-8"><FadeIn className="grid items-center gap-12 lg:grid-cols-2 lg:gap-24"><div><Badge className="mb-6 rounded-full border-0 bg-red-50 text-red-600">🎯 PR Risk Scoring</Badge><h2 className="text-4xl font-black leading-tight tracking-[-0.04em] sm:text-5xl">Know which PRs need human eyes.</h2><p className="mt-5 max-w-lg text-lg leading-8 text-[#6B7280]">Every PR gets a 0-100 risk score based on diff size, file criticality, and historical dismissal rates. Posted instantly as a GitHub commit status.</p><a href="#how-it-works" className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-[#7C3AED]">Learn more <ArrowRight className="size-4" /></a></div><RiskMockup /></FadeIn></div></section>
+    <section className="bg-gradient-to-br from-[#ECFEFF] to-[#F0F9FF]"><div className="mx-auto max-w-7xl px-5 py-24 lg:px-8"><FadeIn className="grid items-center gap-12 lg:grid-cols-2 lg:gap-24"><div className="order-2 lg:order-1"><div className="rounded-2xl bg-[#1A1A2E] p-5 font-mono text-xs leading-6 text-slate-300 shadow-2xl"><div className="mb-4 flex items-center justify-between border-b border-white/10 pb-3 text-[10px] text-slate-500"><span>.powerful.yml</span><button onClick={() => { navigator.clipboard.writeText(yaml); setCopied(true); setTimeout(() => setCopied(false), 1600); }} className="flex items-center gap-1 text-slate-400 hover:text-white" aria-label="Copy configuration"><Clipboard className="size-3" />{copied ? "Copied" : "Copy"}</button></div><pre className="whitespace-pre-wrap"><span className="text-violet-300">{yaml}</span></pre></div></div><div className="order-1 lg:order-2"><Badge className="mb-6 rounded-full border-0 bg-white text-[#0891B2]">📄 Custom Rules</Badge><h2 className="text-4xl font-black leading-tight tracking-[-0.04em] sm:text-5xl">Your standards. Enforced automatically.</h2><p className="mt-5 max-w-lg text-lg leading-8 text-[#6B7280]">Drop a .powerful.yml file into any repo. The agent reads your rules on every PR and enforces them alongside learned memory.</p><a href="#how-it-works" className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-[#7C3AED]">Learn more <ArrowRight className="size-4" /></a></div></FadeIn></div></section>
+    <section id="how-it-works"><div className="mx-auto max-w-7xl px-5 py-24 lg:px-8"><FadeIn><div className="mx-auto max-w-2xl text-center"><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#7C3AED]">Simple by design</p><h2 className="mt-4 text-4xl font-black tracking-[-0.04em] sm:text-5xl">Up and running in 3 steps.</h2></div><div className="mt-14 grid gap-5 md:grid-cols-3">{[{n:"01", t:"Install", d:"Install the GitHub App. Powerful discovers your repos automatically."},{n:"02", t:"Configure", d:"Add a .powerful.yml to set custom rules. Or skip it — defaults work great."},{n:"03", t:"Merge smarter", d:"Every PR gets reviewed, scored, and commented in under 1.5 seconds."}].map((step) => <div key={step.n} className="rounded-2xl border border-[#E5E7EB] bg-white p-7 shadow-sm"><span className="font-mono text-sm font-bold text-[#7C3AED]">{step.n}</span><h3 className="mt-8 text-xl font-extrabold">{step.t}</h3><p className="mt-3 leading-7 text-[#6B7280]">{step.d}</p></div>)}</div></FadeIn></div></section>
+    <section id="pricing" className="bg-[#4C1D95] px-5 py-24 text-white"><FadeIn className="mx-auto max-w-3xl text-center"><h2 className="text-4xl font-black tracking-[-0.04em] sm:text-6xl">Start reviewing smarter today.</h2><p className="mt-5 text-lg text-violet-200">Free for 50 PRs/month. No credit card required.</p><Link href="/install"><Button size="lg" className="mt-9 rounded-full bg-white px-8 text-[#5B21B6] hover:bg-violet-50">Connect GitHub <ArrowRight data-icon="inline-end" /></Button></Link></FadeIn></section>
+    <footer className="bg-[#1A1A2E] px-5 py-14 text-white lg:px-8"><div className="mx-auto max-w-7xl"><div className="flex flex-col justify-between gap-12 md:flex-row"><div><div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-xl bg-[#7C3AED]"><Sparkles className="size-4" /></span><span className="text-lg font-extrabold">Powerful</span></div><p className="mt-4 text-sm text-slate-400">Autonomous PR Review SaaS</p></div><div className="grid grid-cols-2 gap-12 text-sm sm:grid-cols-3"><div><p className="mb-4 font-bold">Product</p><div className="flex flex-col gap-3 text-slate-400"><a href="#features">Dashboard</a><a href="/install">GitHub App</a><a href="#architecture">Architecture</a><a href="#risk">Simulator</a></div></div><div><p className="mb-4 font-bold">Company</p><div className="flex flex-col gap-3 text-slate-400"><a href="#">About</a><a href="#">GitHub</a><a href="#pricing">Pricing</a></div></div></div></div><div className="mt-14 border-t border-white/10 pt-6 text-xs text-slate-500">© 2026 Powerful. Production-Grade AI Engineering.</div></div></footer>
+  </main>;
 }
