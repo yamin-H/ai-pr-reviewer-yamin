@@ -152,28 +152,30 @@ export default function Home() {
 
       // ── 5. Stats Bar Counter Animation ───────────────────────────────────
       if (statReviewRef.current) {
-        gsap.to({ val: 0 }, {
+        const target = { val: 0 };
+        gsap.to(target, {
           val: 1.14,
           duration: 1.6,
           ease: "power2.out",
           delay: 0.4,
-          onUpdate: function () {
+          onUpdate: () => {
             if (statReviewRef.current) {
-              statReviewRef.current.textContent = this.targets()[0].val.toFixed(2) + "s";
+              statReviewRef.current.textContent = target.val.toFixed(2) + "s";
             }
           },
         });
       }
 
       if (statMemoryRef.current) {
-        gsap.to({ val: 0 }, {
+        const target = { val: 0 };
+        gsap.to(target, {
           val: 98.4,
           duration: 1.8,
           ease: "power2.out",
           delay: 0.6,
-          onUpdate: function () {
+          onUpdate: () => {
             if (statMemoryRef.current) {
-              statMemoryRef.current.textContent = this.targets()[0].val.toFixed(1) + "%";
+              statMemoryRef.current.textContent = target.val.toFixed(1) + "%";
             }
           },
         });

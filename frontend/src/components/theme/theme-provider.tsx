@@ -56,9 +56,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       applyTheme(newTheme);
     };
 
-    if (typeof document !== "undefined" && "startViewTransition" in document) {
-      // @ts-expect-error View Transitions API
-      document.startViewTransition(() => {
+    const doc = typeof document !== "undefined" ? (document as Document & {
+      startViewTransition?: (callback: () => void | Promise<void>) => unknown;
+    }) : null;
+
+    if (doc && typeof doc.startViewTransition === "function") {
+      doc.startViewTransition(() => {
         commit();
       });
     } else {
