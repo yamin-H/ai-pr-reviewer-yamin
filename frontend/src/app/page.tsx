@@ -30,9 +30,6 @@ import { ComparisonMatrix } from "@/components/home/comparison-matrix";
 import { InteractiveBackground } from "@/components/home/interactive-background";
 import { ThemeToggle } from "@/components/theme/theme-provider";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
 
 const SAMPLE_YAML = `# .powerful.yml — Declarative Repository Review Guidelines
 rules:
@@ -78,29 +75,31 @@ export default function Home() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 15);
+      const scrollY = window.scrollY;
+      setIsScrolled(scrollY > 15);
+
+      // ── 1. Top Viewport Scroll Progress Bar ──────────────────────────────
+      if (progressBarRef.current) {
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = maxScroll > 0 ? Math.min(Math.max(scrollY / maxScroll, 0), 1) : 0;
+        progressBarRef.current.style.transform = `scaleX(${progress})`;
+      }
+
+      // ── 2. Hero Scroll Parallax ──────────────────────────────────────────
+      if (heroRef.current && scrollY < window.innerHeight) {
+        const factor = Math.min(scrollY / window.innerHeight, 1);
+        heroRef.current.style.transform = `translateY(${-factor * 35}px)`;
+        heroRef.current.style.opacity = `${1 - factor * 0.45}`;
+      }
     };
+
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
 
     let isMounted = true;
 
     const ctx = gsap.context(() => {
-      // ── 1. Top Viewport Scroll Progress Bar ──────────────────────────────
-      if (progressBarRef.current) {
-        gsap.to(progressBarRef.current, {
-          scaleX: 1,
-          ease: "none",
-          scrollTrigger: {
-            trigger: document.documentElement,
-            start: "top top",
-            end: "bottom bottom",
-            scrub: 0.15,
-          },
-        });
-      }
-
-      // ── 2. Hero Headline Entrance ────────────────────────────────────────
+      // ── 3. Hero Headline Entrance ────────────────────────────────────────
       const animateHero = () => {
         if (!isMounted) return;
         if (line1Ref.current && line2Ref.current && line3Ref.current) {
@@ -121,36 +120,7 @@ export default function Home() {
         animateHero();
       }
 
-      // ── 3. Hero Scroll Parallax & Dissolve on Scroll Down ────────────────
-      if (heroRef.current) {
-        gsap.to(heroRef.current, {
-          y: -40,
-          opacity: 0.35,
-          ease: "none",
-          scrollTrigger: {
-            trigger: heroRef.current,
-            start: "center top",
-            end: "bottom top",
-            scrub: 0.6,
-          },
-        });
-      }
-
-      // ── 4. Marquee Extra Scroll Momentum ─────────────────────────────────
-      if (marqueeTrackRef.current) {
-        gsap.to(marqueeTrackRef.current, {
-          x: -60,
-          ease: "none",
-          scrollTrigger: {
-            trigger: marqueeTrackRef.current,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: 1.2,
-          },
-        });
-      }
-
-      // ── 5. Stats Bar Counter Animation ───────────────────────────────────
+      // ── 4. Stats Bar Counter Animation ───────────────────────────────────
       if (statReviewRef.current) {
         const target = { val: 0 };
         gsap.to(target, {
@@ -180,88 +150,7 @@ export default function Home() {
           },
         });
       }
-
-      // ── 6. Section Content Scroll Reveals ────────────────────────────────
-      const revealElements = mainRef.current?.querySelectorAll("[data-reveal]");
-      revealElements?.forEach((element) => {
-        gsap.fromTo(
-          element,
-          {
-            y: 45,
-            opacity: 0,
-          },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.85,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: element,
-              start: "top 85%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        );
-      });
-
-      // ── 7. Accent Line Laser Unfurl on Scroll ───────────────────────────
-      const accentLines = mainRef.current?.querySelectorAll(".accent-line");
-      accentLines?.forEach((line) => {
-        gsap.fromTo(
-          line,
-          {
-            scaleX: 0,
-            opacity: 0,
-          },
-          {
-            scaleX: 1,
-            opacity: 1,
-            duration: 0.7,
-            ease: "power2.out",
-            scrollTrigger: {
-              trigger: line,
-              start: "top 88%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        );
-      });
-
-      // ── 8. Terminal Typewriter on .powerful.yml section ──────────────────
-      if (terminalCodeRef.current) {
-        const lines = SAMPLE_YAML.split("\n");
-        terminalCodeRef.current.textContent = "";
-        ScrollTrigger.create({
-          trigger: terminalCodeRef.current,
-          start: "top 75%",
-          once: true,
-          onEnter: () => {
-            const el = terminalCodeRef.current;
-            if (!el) return;
-            let full = "";
-            let lineIdx = 0;
-            let charIdx = 0;
-            const tick = () => {
-              if (lineIdx >= lines.length) return;
-              const line = lines[lineIdx];
-              if (charIdx < line.length) {
-                full += line[charIdx];
-                charIdx++;
-              } else {
-                full += "\n";
-                lineIdx++;
-                charIdx = 0;
-              }
-              el.textContent = full;
-              if (lineIdx < lines.length) {
-                gsap.delayedCall(0.018, tick);
-              }
-            };
-            tick();
-          },
-        });
-      }
-    }, mainRef);
+    });
 
     return () => {
       isMounted = false;
@@ -593,7 +482,7 @@ export default function Home() {
         className="relative z-10 bg-white dark:bg-[#0B0F1A] border-t border-[#E5E7EB] dark:border-white/10 scroll-mt-16 transition-colors duration-300"
       >
         <div className="mx-auto max-w-7xl px-6 section-pad">
-          <div className="mb-12" data-reveal>
+          <div className="mb-12">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/30 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 mb-4">
               <Sparkles className="h-3 w-3" />
               Interactive Playground
@@ -606,9 +495,7 @@ export default function Home() {
               Choose a Pull Request diff below, click &quot;Simulate Review&quot;, and approve suggestions to see rules commit into the live memory bank.
             </p>
           </div>
-          <div data-reveal>
-            <ReviewSimulator />
-          </div>
+          <ReviewSimulator />
         </div>
       </section>
 
@@ -618,7 +505,7 @@ export default function Home() {
         className="relative z-10 bg-[#FAFAFA] dark:bg-[#080C14] border-t border-[#E5E7EB] dark:border-white/10 scroll-mt-16 transition-colors duration-300"
       >
         <div className="mx-auto max-w-7xl px-6 section-pad">
-          <div className="mb-12" data-reveal>
+          <div className="mb-12">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-50 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-800/40 text-[11px] font-semibold text-[#6D28D9] dark:text-[#A78BFA] mb-4">
               <Layers className="h-3 w-3" />
               Under the Hood
@@ -631,9 +518,7 @@ export default function Home() {
               Every pull request passes through an 8-stage state machine that isolates context extraction, AST segmenting, pgvector search, and atomic GitHub dispatching.
             </p>
           </div>
-          <div data-reveal>
-            <PipelineExplorer />
-          </div>
+          <PipelineExplorer />
         </div>
       </section>
 
@@ -643,7 +528,7 @@ export default function Home() {
         className="relative z-10 bg-white dark:bg-[#0B0F1A] border-t border-[#E5E7EB] dark:border-white/10 scroll-mt-16 transition-colors duration-300"
       >
         <div className="mx-auto max-w-7xl px-6 section-pad">
-          <div className="mb-12" data-reveal>
+          <div className="mb-12">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/30 text-[11px] font-semibold text-amber-700 dark:text-amber-400 mb-4">
               <ShieldCheck className="h-3 w-3" />
               Risk Prevention
@@ -656,9 +541,7 @@ export default function Home() {
               Adjust the diff size, file count, and historical team dismissal rates below to compute the live composite score and see the exact GitHub commit check status Powerful posts.
             </p>
           </div>
-          <div data-reveal>
-            <RiskCalculator />
-          </div>
+          <RiskCalculator />
         </div>
       </section>
 
@@ -680,7 +563,7 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-6 section-pad">
           <div className="grid lg:grid-cols-12 gap-16 items-start">
             {/* Left: editorial prose */}
-            <div className="lg:col-span-6 space-y-8" data-reveal>
+            <div className="lg:col-span-6 space-y-8">
               <div>
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-50 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-800/40 text-[11px] font-semibold text-[#6D28D9] dark:text-[#A78BFA] mb-4">
                   <FileCode className="h-3 w-3" />
@@ -729,7 +612,7 @@ export default function Home() {
             </div>
 
             {/* Right: terminal code window */}
-            <div className="lg:col-span-6" data-reveal>
+            <div className="lg:col-span-6">
               <div className="rounded-2xl overflow-hidden shadow-xl border border-[#2D2D3F]">
                 {/* Terminal title bar */}
                 <div className="flex items-center justify-between bg-[#1E1E2E] px-4 py-3 border-b border-[#2D2D3F]">

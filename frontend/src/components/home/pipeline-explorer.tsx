@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
   GitPullRequest,
   FileCode,
@@ -19,8 +18,6 @@ import {
   Clock,
   Zap,
 } from "lucide-react";
-
-gsap.registerPlugin(ScrollTrigger);
 
 interface PipelineNode {
   id: string;

@@ -1,11 +1,4 @@
-"use client";
-
-import { useEffect, useRef } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Check, X, Sparkles } from "lucide-react";
-
-gsap.registerPlugin(ScrollTrigger);
 
 interface ComparisonRow {
   capability: string;
@@ -50,55 +43,10 @@ const COMPARISONS: ComparisonRow[] = [
 ];
 
 export function ComparisonMatrix() {
-  const checkmarkRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      // Animate rows in on scroll with stagger
-      const validRows = rowRefs.current.filter(Boolean);
-      if (validRows.length > 0 && containerRef.current) {
-        gsap.from(validRows, {
-          scrollTrigger: {
-            trigger: containerRef.current,
-            start: "top 80%",
-            toggleActions: "play none none reverse",
-          },
-          y: 24,
-          opacity: 0,
-          duration: 0.55,
-          ease: "power2.out",
-          stagger: 0.1,
-        });
-      }
-
-      // Animate checkmarks with scale pop
-      const validChecks = checkmarkRefs.current.filter(Boolean);
-      if (validChecks.length > 0 && containerRef.current) {
-        gsap.from(validChecks, {
-          scrollTrigger: {
-            trigger: containerRef.current,
-            start: "top 75%",
-            toggleActions: "play none none reverse",
-          },
-          scale: 0,
-          opacity: 0,
-          duration: 0.4,
-          ease: "back.out(1.7)",
-          stagger: 0.08,
-          delay: 0.2,
-        });
-      }
-    }, containerRef);
-
-    return () => ctx.revert();
-  }, []);
-
   return (
-    <div ref={containerRef} className="w-full">
+    <div className="w-full">
       {/* Section header */}
-      <div className="mb-10" data-reveal>
+      <div className="mb-10">
         <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 dark:border-violet-800/40 bg-violet-50 dark:bg-violet-950/40 px-3 py-1 text-[11px] font-semibold text-[#6D28D9] dark:text-[#A78BFA] mb-4">
           <Sparkles className="h-3.5 w-3.5" />
           Architectural Differentiation
@@ -143,7 +91,6 @@ export function ComparisonMatrix() {
           {COMPARISONS.map((row, idx) => (
             <div
               key={idx}
-              ref={(el) => { rowRefs.current[idx] = el; }}
               className={`grid grid-cols-12 px-5 py-4 gap-4 items-start transition-colors duration-200 hover:bg-[#FAFAFA] dark:hover:bg-white/[0.03] ${
                 row.isHero
                   ? "bg-violet-50/40 dark:bg-violet-950/20"
@@ -155,7 +102,6 @@ export function ComparisonMatrix() {
               {/* Capability label */}
               <div className="col-span-12 sm:col-span-4 flex items-start gap-2.5">
                 <div
-                  ref={(el) => { checkmarkRefs.current[idx] = el; }}
                   className={`h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
                     row.isHero
                       ? "bg-[#6D28D9] text-white"
