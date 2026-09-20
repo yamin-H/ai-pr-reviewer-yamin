@@ -126,29 +126,112 @@ html.dark .bg-dot-grid {
 }
 
 /* ═══════════════════════════════════════════════════════
-   CARD UTILITIES
+   TACTILE BEVEL CHASSIS & CARD UTILITIES
+   Precision physical depth — no blurry drop shadows
 ═══════════════════════════════════════════════════════ */
 .card-light {
   background: var(--card-background);
-  border: 1px solid var(--card-border);
+  border: 1.5px solid #E2E8F0;
   border-radius: 1rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
-  transition: background-color 0.35s ease, border-color 0.35s ease;
+  box-shadow: 
+    inset 0 1px 0 0 #FFFFFF,
+    inset 0 -1.5px 0 0 rgba(15, 23, 42, 0.04),
+    0 1px 0 0 rgba(15, 23, 42, 0.06),
+    0 2px 0 0 rgba(15, 23, 42, 0.02);
+  transition: background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
 }
 
 .card-light-md {
   background: var(--card-background);
-  border: 1px solid var(--card-border);
+  border: 1.5px solid #E2E8F0;
+  border-radius: 1.25rem;
+  box-shadow: 
+    inset 0 1.5px 0 0 #FFFFFF,
+    inset 0 0 0 1px rgba(255, 255, 255, 0.9),
+    inset 0 -2px 0 0 rgba(15, 23, 42, 0.04),
+    0 1px 0 0 rgba(15, 23, 42, 0.07),
+    0 3px 0 0 rgba(15, 23, 42, 0.03);
+  transition: background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+html.dark .card-light {
+  background: var(--card-background);
+  border: 1.5px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.14),
+    inset 0 -1.5px 0 0 rgba(0, 0, 0, 0.5),
+    0 1px 0 0 rgba(0, 0, 0, 0.7),
+    0 2px 0 0 rgba(0, 0, 0, 0.4);
+}
+
+html.dark .card-light-md {
+  background: var(--card-background);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    inset 0 1.5px 0 0 rgba(255, 255, 255, 0.16),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 -2px 0 0 rgba(0, 0, 0, 0.6),
+    0 1px 0 0 rgba(0, 0, 0, 0.7),
+    0 3px 0 0 rgba(0, 0, 0, 0.4);
+}
+
+/* Dedicated Tactile Bevel Container */
+.bevel-card {
+  position: relative;
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 1.25rem;
+  box-shadow:
+    inset 0 1.5px 0 0 #FFFFFF,
+    inset 0 0 0 1px rgba(255, 255, 255, 0.95),
+    inset 0 -2px 0 0 rgba(15, 23, 42, 0.05),
+    0 1px 0 0 rgba(15, 23, 42, 0.08),
+    0 3.5px 0 0 rgba(15, 23, 42, 0.035);
+  transition: background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+html.dark .bevel-card {
+  background: #0D1322;
+  border: 1.5px solid rgba(255, 255, 255, 0.11);
+  box-shadow:
+    inset 0 1.5px 0 0 rgba(255, 255, 255, 0.18),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 -2px 0 0 rgba(0, 0, 0, 0.6),
+    0 1px 0 0 rgba(0, 0, 0, 0.8),
+    0 3.5px 0 0 rgba(0, 0, 0, 0.45);
+}
+
+/* Micro Chamfer Light Rail along top edge */
+.bevel-chamfer-rail {
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 8%;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(109, 40, 217, 0.4), rgba(8, 145, 178, 0.4), transparent);
+  pointer-events: none;
+  border-radius: 9999px;
+}
+
+/* Recessed Inset Dock / Tray for inner widgets */
+.bevel-recessed {
+  background: #F8FAFC;
+  border: 1.5px solid #E2E8F0;
   border-radius: 1rem;
-  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08), 0 2px 6px -2px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    inset 0 2px 4px 0 rgba(15, 23, 42, 0.04),
+    inset 0 0 0 1px rgba(15, 23, 42, 0.02),
+    0 1px 0 0 rgba(255, 255, 255, 0.9);
   transition: background-color 0.35s ease, border-color 0.35s ease;
 }
 
-html.dark .card-light,
-html.dark .card-light-md {
-  background: var(--card-background);
-  border-color: var(--card-border);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+html.dark .bevel-recessed {
+  background: #080C14;
+  border: 1.5px solid rgba(255, 255, 255, 0.07);
+  box-shadow:
+    inset 0 2px 6px 0 rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.3),
+    0 1px 0 0 rgba(255, 255, 255, 0.05);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -304,35 +387,42 @@ html.dark .glass-panel {
 input[type="range"].violet-range {
   -webkit-appearance: none;
   appearance: none;
-  height: 4px;
+  height: 6px;
   border-radius: 9999px;
-  background: #E5E7EB;
+  background: #E2E8F0;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.08);
   outline: none;
   cursor: pointer;
+}
+
+html.dark input[type="range"].violet-range {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 input[type="range"].violet-range::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: #6D28D9;
   cursor: pointer;
-  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.15);
-  transition: box-shadow 0.15s;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 3px rgba(0, 0, 0, 0.2), 0 0 0 3px rgba(109, 40, 217, 0.15);
+  transition: box-shadow 0.15s, transform 0.15s;
 }
 
 input[type="range"].violet-range::-webkit-slider-thumb:hover {
-  box-shadow: 0 0 0 5px rgba(109, 40, 217, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 2px 4px rgba(0, 0, 0, 0.25), 0 0 0 5px rgba(109, 40, 217, 0.25);
+  transform: scale(1.05);
 }
 
 input[type="range"].violet-range::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: #6D28D9;
   cursor: pointer;
   border: none;
-  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.15);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 3px rgba(0, 0, 0, 0.2), 0 0 0 3px rgba(109, 40, 217, 0.15);
 }

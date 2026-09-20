@@ -479,7 +479,7 @@ export default function Home() {
       {/* ── INTERACTIVE PLAYGROUND ─────────────────────────────────────── */}
       <section
         id="simulator"
-        className="relative z-10 bg-white dark:bg-[#0B0F1A] border-t border-[#E5E7EB] dark:border-white/10 scroll-mt-16 transition-colors duration-300"
+        className="relative z-10 bg-[#F8F9FB] dark:bg-[#080C14] border-t border-zinc-200/80 dark:border-white/[0.06] scroll-mt-16 transition-colors duration-300"
       >
         <div className="mx-auto max-w-7xl px-6 section-pad">
           <div className="mb-12">
@@ -502,7 +502,7 @@ export default function Home() {
       {/* ── LANGGRAPH PIPELINE ─────────────────────────────────────────── */}
       <section
         id="pipeline"
-        className="relative z-10 bg-[#FAFAFA] dark:bg-[#080C14] border-t border-[#E5E7EB] dark:border-white/10 scroll-mt-16 transition-colors duration-300"
+        className="relative z-10 bg-[#F1F3F6] dark:bg-[#06090F] border-t border-zinc-200/80 dark:border-white/[0.06] scroll-mt-16 transition-colors duration-300"
       >
         <div className="mx-auto max-w-7xl px-6 section-pad">
           <div className="mb-12">
@@ -525,7 +525,7 @@ export default function Home() {
       {/* ── RISK ENGINE ────────────────────────────────────────────────── */}
       <section
         id="risk"
-        className="relative z-10 bg-white dark:bg-[#0B0F1A] border-t border-[#E5E7EB] dark:border-white/10 scroll-mt-16 transition-colors duration-300"
+        className="relative z-10 bg-[#F8F9FB] dark:bg-[#080C14] border-t border-zinc-200/80 dark:border-white/[0.06] scroll-mt-16 transition-colors duration-300"
       >
         <div className="mx-auto max-w-7xl px-6 section-pad">
           <div className="mb-12">
@@ -548,7 +548,7 @@ export default function Home() {
       {/* ── WHY POWERFUL ───────────────────────────────────────────────── */}
       <section
         id="comparison"
-        className="relative z-10 bg-[#FAFAFA] dark:bg-[#080C14] border-t border-[#E5E7EB] dark:border-white/10 scroll-mt-16 transition-colors duration-300"
+        className="relative z-10 bg-[#F1F3F6] dark:bg-[#06090F] border-t border-zinc-200/80 dark:border-white/[0.06] scroll-mt-16 transition-colors duration-300"
       >
         <div className="mx-auto max-w-7xl px-6 section-pad">
           <ComparisonMatrix />
@@ -558,7 +558,7 @@ export default function Home() {
       {/* ── .POWERFUL.YML QUICKSTART ────────────────────────────────────── */}
       <section
         id="quickstart"
-        className="relative z-10 bg-white dark:bg-[#0B0F1A] border-t border-[#E5E7EB] dark:border-white/10 scroll-mt-16 transition-colors duration-300"
+        className="relative z-10 bg-[#F8F9FB] dark:bg-[#080C14] border-t border-zinc-200/80 dark:border-white/[0.06] scroll-mt-16 transition-colors duration-300"
       >
         <div className="mx-auto max-w-7xl px-6 section-pad">
           <div className="grid lg:grid-cols-12 gap-16 items-start">
@@ -613,7 +613,8 @@ export default function Home() {
 
             {/* Right: terminal code window */}
             <div className="lg:col-span-6">
-              <div className="rounded-2xl overflow-hidden shadow-xl border border-[#2D2D3F]">
+              <div className="bevel-card overflow-hidden !bg-[#1E1E2E] !border-[#2D2D3F]">
+                <div className="bevel-chamfer-rail" />
                 {/* Terminal title bar */}
                 <div className="flex items-center justify-between bg-[#1E1E2E] px-4 py-3 border-b border-[#2D2D3F]">
                   <div className="flex items-center gap-2">

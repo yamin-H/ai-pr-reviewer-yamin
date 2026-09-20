@@ -187,9 +187,10 @@ export function ReviewSimulator() {
       : "bg-emerald-50 text-emerald-600 border-emerald-200";
 
   return (
-    <div className="w-full card-light-md overflow-hidden transition-colors duration-300">
+    <div className="w-full bevel-card overflow-hidden">
+      <div className="bevel-chamfer-rail" />
       {/* Top bar */}
-      <div className="border-b border-[#E5E7EB] dark:border-white/10 bg-[#FAFAFA] dark:bg-[#080C14] px-5 py-3 flex flex-wrap items-center justify-between gap-3 transition-colors duration-300">
+      <div className="border-b border-[#E2E8F0] dark:border-white/10 bg-[#F8FAFC] dark:bg-[#080C14] px-5 py-3 flex flex-wrap items-center justify-between gap-3 transition-colors duration-300">
         <div className="flex items-center gap-2">
           {/* Traffic light dots */}
           <div className="flex gap-1.5 mr-2">

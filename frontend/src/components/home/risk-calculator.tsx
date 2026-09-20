@@ -109,7 +109,8 @@ export function RiskCalculator() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="w-full card-light-md p-6 sm:p-8 transition-colors duration-300">
+    <div className="w-full bevel-card p-6 sm:p-8">
+      <div className="bevel-chamfer-rail" />
       <div className="grid lg:grid-cols-12 gap-10 items-center">
         {/* Left: sliders */}
         <div className="lg:col-span-7 space-y-7">
@@ -181,7 +182,7 @@ export function RiskCalculator() {
             </div>
 
             {/* Toggle: Critical Files */}
-            <div className="flex items-center justify-between p-4 rounded-xl border border-[#E5E7EB] dark:border-white/10 bg-[#FAFAFA] dark:bg-[#080C14] transition-colors duration-300">
+            <div className="flex items-center justify-between p-4 rounded-xl bevel-recessed">
               <div>
                 <span className="text-[13px] font-semibold text-[#0F0F0F] dark:text-white block">
                   Critical Path Impact (Auth / Database / Payments)
@@ -237,7 +238,7 @@ export function RiskCalculator() {
         </div>
 
         {/* Right: gauge + GitHub check */}
-        <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 rounded-2xl border border-[#E5E7EB] dark:border-white/10 bg-[#FAFAFA] dark:bg-[#080C14] space-y-6 transition-colors duration-300">
+        <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 sm:p-7 bevel-recessed space-y-6">
           {/* Circular SVG gauge */}
           <div className="relative flex items-center justify-center">
             <svg className="w-44 h-44 -rotate-90" viewBox="0 0 176 176">
@@ -282,7 +283,7 @@ export function RiskCalculator() {
           </div>
 
           {/* GitHub commit status mock */}
-          <div className="w-full rounded-xl border border-[#E5E7EB] dark:border-white/10 bg-white dark:bg-[#0D1322] p-3.5 space-y-2 transition-colors duration-300">
+          <div className="w-full rounded-xl border border-zinc-200/90 dark:border-white/10 bg-white dark:bg-[#0D1322] p-3.5 space-y-2 shadow-[inset_0_1px_0_0_#FFFFFF,0_1px_2px_0_rgba(15,23,42,0.05)] dark:shadow-none transition-colors duration-300">
             <div className="flex items-center justify-between text-[11px] text-[#4B5563] dark:text-zinc-400 font-mono pb-2.5 border-b border-[#E5E7EB] dark:border-white/10">
               <span className="flex items-center gap-1.5 text-[#0F0F0F] dark:text-white font-semibold">
                 <GitCommit className="h-3.5 w-3.5 text-[#6D28D9] dark:text-[#A78BFA]" />

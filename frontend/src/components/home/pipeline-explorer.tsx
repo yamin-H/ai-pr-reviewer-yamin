@@ -245,7 +245,8 @@ export function PipelineExplorer() {
   return (
     <div className="w-full space-y-5">
       {/* Pipeline graph */}
-      <div className="card-light-md p-5 sm:p-7 overflow-hidden transition-colors duration-300">
+      <div className="bevel-card p-5 sm:p-7 overflow-hidden">
+        <div className="bevel-chamfer-rail" />
         <div className="flex items-center justify-between mb-6 pb-5 border-b border-[#E5E7EB] dark:border-white/10">
           <div className="flex items-center gap-3">
             <div className="h-9 w-9 rounded-xl bg-violet-50 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-800/40 flex items-center justify-center text-[#6D28D9] dark:text-[#A78BFA]">
@@ -341,7 +342,7 @@ export function PipelineExplorer() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.22, ease: "easeOut" }}
-          className="card-light-md p-6 transition-colors duration-300"
+          className="bevel-card p-6"
         >
           <div className="grid md:grid-cols-12 gap-6">
             {/* Left: overview */}

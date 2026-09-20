@@ -72,9 +72,10 @@ export function ComparisonMatrix() {
       </div>
 
       {/* Comparison table */}
-      <div className="card-light overflow-hidden transition-colors duration-300">
+      <div className="bevel-card overflow-hidden">
+        <div className="bevel-chamfer-rail" />
         {/* Table header */}
-        <div className="grid grid-cols-12 bg-[#FAFAFA] dark:bg-[#080C14] border-b border-[#E5E7EB] dark:border-white/10 px-5 py-3 transition-colors duration-300">
+        <div className="grid grid-cols-12 bg-[#F8FAFC] dark:bg-[#080C14] border-b border-[#E2E8F0] dark:border-white/10 px-5 py-3 transition-colors duration-300">
           <div className="col-span-4 text-[11px] font-bold text-[#9CA3AF] dark:text-zinc-400 uppercase tracking-wider">
             Capability
           </div>
