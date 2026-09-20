@@ -101,10 +101,10 @@ export default function QueuePage() {
 
   if (error && !data) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center glass-card max-w-lg mx-auto mt-12 p-8 border border-red-500/10 bg-red-500/5">
-        <AlertTriangle className="h-10 w-10 text-red-400 mb-4" />
-        <h3 className="text-lg font-bold text-white mb-2">Queue Monitoring Unavailable</h3>
-        <p className="text-sm text-zinc-400 mb-6">{error}</p>
+      <div className="flex flex-col items-center justify-center py-20 text-center glass-card max-w-lg mx-auto mt-12 p-8 border border-red-500/20 bg-red-50/50 dark:bg-red-500/5">
+        <AlertTriangle className="h-10 w-10 text-red-500 dark:text-red-400 mb-4" />
+        <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-2">Queue Monitoring Unavailable</h3>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">{error}</p>
         <Button onClick={() => fetchQueueData()} size="sm">
           Retry Connection
         </Button>
@@ -120,13 +120,13 @@ export default function QueuePage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-white tracking-tight">PR Review Queue</h1>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 px-2.5 py-0.5 text-[10px] font-semibold text-indigo-300">
+            <h1 className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight">PR Review Queue</h1>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 px-2.5 py-0.5 text-[10px] font-semibold text-indigo-700 dark:text-indigo-300">
               <Cpu className="h-3 w-3" />
               BullMQ Engine
             </span>
           </div>
-          <p className="text-sm text-zinc-400 mt-1">
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
             Real-time background worker status, active queue concurrency, and audit latencies.
           </p>
         </div>
@@ -136,13 +136,13 @@ export default function QueuePage() {
             onClick={() => setAutoRefresh(!autoRefresh)}
             className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${
               autoRefresh
-                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                : "border-white/[0.08] bg-white/[0.03] text-zinc-400 hover:text-white"
+                ? "border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                : "border-zinc-200 dark:border-white/[0.08] bg-zinc-50 dark:bg-white/[0.03] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
             }`}
           >
             {autoRefresh ? (
               <>
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
                 Live Polling (3s)
               </>
             ) : (
@@ -169,18 +169,18 @@ export default function QueuePage() {
       {/* Metric Cards Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Active Jobs */}
-        <Card className="border border-white/[0.08] bg-[#0A0E18] relative overflow-hidden">
+        <Card className="border border-zinc-200/80 dark:border-white/[0.08] bg-white/90 dark:bg-[#0A0E18] relative overflow-hidden shadow-sm">
           <div className="p-5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Active Executions</span>
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+              <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Active Executions</span>
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400">
                 <Activity className="h-3.5 w-3.5" />
               </span>
             </div>
             <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-white">{counts.active}</span>
+              <span className="text-3xl font-extrabold text-zinc-900 dark:text-white">{counts.active}</span>
               {counts.active > 0 && (
-                <span className="text-[11px] font-semibold text-emerald-400 animate-pulse">Running</span>
+                <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 animate-pulse">Running</span>
               )}
             </div>
             <p className="mt-1 text-[11px] text-zinc-500">Worker concurrency limit: 3</p>
@@ -188,16 +188,16 @@ export default function QueuePage() {
         </Card>
 
         {/* Waiting Jobs */}
-        <Card className="border border-white/[0.08] bg-[#0A0E18] relative overflow-hidden">
+        <Card className="border border-zinc-200/80 dark:border-white/[0.08] bg-white/90 dark:bg-[#0A0E18] relative overflow-hidden shadow-sm">
           <div className="p-5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Pending in Queue</span>
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
+              <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Pending in Queue</span>
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400">
                 <Clock className="h-3.5 w-3.5" />
               </span>
             </div>
             <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-white">{counts.waiting}</span>
+              <span className="text-3xl font-extrabold text-zinc-900 dark:text-white">{counts.waiting}</span>
               <span className="text-[11px] text-zinc-500">jobs queued</span>
             </div>
             <p className="mt-1 text-[11px] text-zinc-500">Awaiting available worker thread</p>
@@ -205,16 +205,16 @@ export default function QueuePage() {
         </Card>
 
         {/* Completed Jobs */}
-        <Card className="border border-white/[0.08] bg-[#0A0E18] relative overflow-hidden">
+        <Card className="border border-zinc-200/80 dark:border-white/[0.08] bg-white/90 dark:bg-[#0A0E18] relative overflow-hidden shadow-sm">
           <div className="p-5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Completed</span>
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+              <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Completed</span>
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
                 <CheckCircle2 className="h-3.5 w-3.5" />
               </span>
             </div>
             <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-emerald-400">{counts.completed}</span>
+              <span className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">{counts.completed}</span>
               <span className="text-[11px] text-zinc-500">in Redis buffer</span>
             </div>
             <p className="mt-1 text-[11px] text-zinc-500">Recent completed queue tasks</p>
@@ -222,16 +222,16 @@ export default function QueuePage() {
         </Card>
 
         {/* Failed Jobs */}
-        <Card className="border border-white/[0.08] bg-[#0A0E18] relative overflow-hidden">
+        <Card className="border border-zinc-200/80 dark:border-white/[0.08] bg-white/90 dark:bg-[#0A0E18] relative overflow-hidden shadow-sm">
           <div className="p-5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Failed</span>
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-400">
+              <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Failed</span>
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400">
                 <AlertTriangle className="h-3.5 w-3.5" />
               </span>
             </div>
             <div className="mt-3 flex items-baseline gap-2">
-              <span className={`text-3xl font-extrabold ${counts.failed > 0 ? "text-red-400" : "text-white"}`}>
+              <span className={`text-3xl font-extrabold ${counts.failed > 0 ? "text-red-600 dark:text-red-400" : "text-zinc-900 dark:text-white"}`}>
                 {counts.failed}
               </span>
               <span className="text-[11px] text-zinc-500">unresolved</span>
@@ -242,26 +242,26 @@ export default function QueuePage() {
       </div>
 
       {/* Main Jobs Section */}
-      <Card className="border border-white/[0.08] bg-[#0A0E18]">
-        <CardHeader className="border-b border-white/[0.06] pb-4">
+      <Card className="border border-zinc-200/80 dark:border-white/[0.08] bg-white/90 dark:bg-[#0A0E18] shadow-sm">
+        <CardHeader className="border-b border-zinc-200/80 dark:border-white/[0.06] pb-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <CardTitle className="text-base font-bold text-white">Queue Tasks</CardTitle>
-              <CardDescription className="text-xs text-zinc-400">
+              <CardTitle className="text-base font-bold text-zinc-900 dark:text-white">Queue Tasks</CardTitle>
+              <CardDescription className="text-xs text-zinc-500 dark:text-zinc-400">
                 PR review background jobs filtered by state
               </CardDescription>
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex items-center gap-1.5 rounded-xl bg-white/[0.03] border border-white/[0.06] p-1">
+            <div className="flex items-center gap-1.5 rounded-xl bg-zinc-100/80 dark:bg-white/[0.03] border border-zinc-200/60 dark:border-white/[0.06] p-1">
               {(["all", "active", "waiting", "completed", "failed"] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setFilter(tab)}
                   className={`rounded-lg px-3 py-1 text-xs font-semibold capitalize transition-all cursor-pointer ${
                     filter === tab
-                      ? "bg-indigo-600 text-white shadow-sm"
-                      : "text-zinc-400 hover:text-white hover:bg-white/[0.05]"
+                      ? "bg-white dark:bg-indigo-600 text-indigo-700 dark:text-white shadow-xs"
+                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-white/[0.05]"
                   }`}
                 >
                   {tab}
@@ -274,32 +274,32 @@ export default function QueuePage() {
         <CardContent className="p-0">
           {filteredJobs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center px-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 mb-3 shadow-lg shadow-indigo-500/10">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 mb-3 shadow-lg shadow-indigo-500/10">
                 <Layers className="h-6 w-6" />
               </div>
-              <p className="text-sm font-semibold text-white">Queue is Idle</p>
-              <p className="mt-1 text-xs text-zinc-400 max-w-sm">
+              <p className="text-sm font-semibold text-zinc-900 dark:text-white">Queue is Idle</p>
+              <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 max-w-sm">
                 No jobs currently match the &quot;{filter}&quot; filter. Background review workers are waiting for new Pull Request webhooks.
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-white/[0.06]">
+            <div className="divide-y divide-zinc-200/70 dark:divide-white/[0.06]">
               {filteredJobs.map((job) => (
                 <div
                   key={job.id}
-                  className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/[0.02] transition-colors"
+                  className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors"
                 >
                   {/* Left info */}
                   <div className="flex items-start gap-3.5 min-w-0">
                     <div
                       className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${
                         job.state === "active"
-                          ? "bg-indigo-500/15 border-indigo-500/30 text-indigo-400 animate-pulse"
+                          ? "bg-indigo-500/15 border-indigo-500/30 text-indigo-600 dark:text-indigo-400 animate-pulse"
                           : job.state === "completed"
-                          ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-400"
+                          ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
                           : job.state === "failed"
-                          ? "bg-red-500/15 border-red-500/30 text-red-400"
-                          : "bg-amber-500/15 border-amber-500/30 text-amber-400"
+                          ? "bg-red-500/15 border-red-500/30 text-red-600 dark:text-red-400"
+                          : "bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400"
                       }`}
                     >
                       <GitPullRequest className="h-4.5 w-4.5" />
@@ -309,7 +309,7 @@ export default function QueuePage() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <Link
                           href={`/dashboard/reviews/${job.reviewId}`}
-                          className="font-semibold text-sm text-white hover:text-indigo-300 transition-colors truncate max-w-md"
+                          className="font-semibold text-sm text-zinc-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors truncate max-w-md"
                         >
                           {job.prTitle || `PR #${job.prNumber}`}
                         </Link>
@@ -329,14 +329,14 @@ export default function QueuePage() {
                         </Badge>
                       </div>
 
-                      <p className="text-xs text-zinc-400 font-mono flex items-center gap-2">
-                        <span>{job.repo}</span>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400 font-mono flex items-center gap-2">
+                        <span className="text-zinc-700 dark:text-zinc-300">{job.repo}</span>
                         <span>·</span>
-                        <span className="text-zinc-500">Job #{job.id}</span>
+                        <span className="text-zinc-400 dark:text-zinc-500">Job #{job.id}</span>
                       </p>
 
                       {job.failedReason && (
-                        <p className="text-xs text-red-400 mt-1 font-mono bg-red-950/30 border border-red-500/20 px-2.5 py-1 rounded-lg">
+                        <p className="text-xs text-red-700 dark:text-red-400 mt-1 font-mono bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-500/20 px-2.5 py-1 rounded-lg">
                           Error: {job.failedReason}
                         </p>
                       )}
@@ -346,11 +346,11 @@ export default function QueuePage() {
                   {/* Right: Latency telemetry & Actions */}
                   <div className="flex items-center gap-6 shrink-0 self-end sm:self-center">
                     <div className="text-right space-y-0.5">
-                      <div className="flex items-center gap-1 text-xs text-zinc-300 font-medium justify-end">
-                        <Timer className="h-3 w-3 text-zinc-500" />
+                      <div className="flex items-center gap-1 text-xs text-zinc-700 dark:text-zinc-300 font-medium justify-end">
+                        <Timer className="h-3 w-3 text-zinc-400 dark:text-zinc-500" />
                         <span>Duration: {formatDuration(job.durationMs)}</span>
                       </div>
-                      <p className="text-[10px] text-zinc-500 font-mono">
+                      <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-mono">
                         Queue Wait: {formatDuration(job.waitMs)}
                       </p>
                     </div>
@@ -359,7 +359,7 @@ export default function QueuePage() {
                       {job.state === "active" ? (
                         <Link href="/dashboard/pipeline">
                           <Button size="sm" variant="secondary" className="h-8 text-xs gap-1.5">
-                            <Activity className="h-3.5 w-3.5 text-indigo-400 animate-pulse" />
+                            <Activity className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400 animate-pulse" />
                             Live Stream
                           </Button>
                         </Link>

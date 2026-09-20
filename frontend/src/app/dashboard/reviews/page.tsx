@@ -133,8 +133,8 @@ export default function ReviewsPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">PR Reviews</h1>
-          <p className="text-sm text-zinc-400 mt-1">
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight">PR Reviews</h1>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
             Browse automated pull request reviews, audit diffs, and inspect AI comments.
           </p>
         </div>
@@ -146,24 +146,24 @@ export default function ReviewsPage() {
             onClick={handleExportCsv}
             className="gap-2 text-xs font-semibold h-8.5"
           >
-            <Download className="h-3.5 w-3.5 text-zinc-400" />
+            <Download className="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" />
             Export CSV
           </Button>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="border border-white/[0.08] bg-[#0A0E18] rounded-2xl p-4 space-y-4">
+      <div className="border border-zinc-200/80 dark:border-white/[0.08] bg-white/90 dark:bg-[#0A0E18] rounded-2xl p-4 space-y-4 shadow-sm">
         <div className="grid gap-3 md:grid-cols-12 items-center">
           {/* Search */}
           <div className="relative md:col-span-5">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 dark:text-zinc-500" />
             <input
               type="text"
               placeholder="Search by PR title, #number, or repo..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-9.5 pl-10 pr-4 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500/50 transition-colors"
+              className="w-full h-9.5 pl-10 pr-4 rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-zinc-50 dark:bg-white/[0.03] text-xs text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-indigo-500/50 transition-colors"
             />
           </div>
 
@@ -172,7 +172,7 @@ export default function ReviewsPage() {
             <select
               value={selectedRepoId}
               onChange={(e) => setSelectedRepoId(e.target.value)}
-              className="w-full h-9.5 px-3.5 rounded-xl border border-white/[0.08] bg-[#0E1322] text-xs text-zinc-200 focus:outline-none focus:border-indigo-500/50 transition-colors cursor-pointer"
+              className="w-full h-9.5 px-3.5 rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-zinc-50 dark:bg-[#0E1322] text-xs text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-indigo-500/50 transition-colors cursor-pointer"
             >
               <option value="all">All Repositories ({repos.length})</option>
               {repos.map((r) => (
@@ -188,7 +188,7 @@ export default function ReviewsPage() {
             <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value as DateFilter)}
-              className="w-full h-9.5 px-3.5 rounded-xl border border-white/[0.08] bg-[#0E1322] text-xs text-zinc-200 focus:outline-none focus:border-indigo-500/50 transition-colors cursor-pointer"
+              className="w-full h-9.5 px-3.5 rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-zinc-50 dark:bg-[#0E1322] text-xs text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-indigo-500/50 transition-colors cursor-pointer"
             >
               <option value="all">Date: All Time</option>
               <option value="7d">Date: Last 7 Days</option>
@@ -199,16 +199,16 @@ export default function ReviewsPage() {
         </div>
 
         {/* Status Filter Tabs & Summary Count */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-white/[0.06]">
-          <div className="flex flex-wrap rounded-xl bg-white/[0.03] p-1 border border-white/[0.06] gap-1">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-zinc-200/80 dark:border-white/[0.06]">
+          <div className="flex flex-wrap rounded-xl bg-zinc-100/80 dark:bg-white/[0.03] p-1 border border-zinc-200/60 dark:border-white/[0.06] gap-1">
             {(["all", "completed", "pending", "failed"] as StatusFilter[]).map((status) => (
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
                 className={`rounded-lg px-3 py-1 text-xs font-semibold capitalize tracking-wide transition-all cursor-pointer ${
                   statusFilter === status
-                    ? "bg-gradient-to-r from-indigo-500/25 to-violet-500/20 text-white border border-indigo-500/30 shadow-sm"
-                    : "text-zinc-400 hover:text-white hover:bg-white/[0.03]"
+                    ? "bg-white dark:bg-gradient-to-r dark:from-indigo-500/25 dark:to-violet-500/20 text-indigo-700 dark:text-white border border-zinc-200 dark:border-indigo-500/30 shadow-xs"
+                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-white/[0.03]"
                 }`}
               >
                 {status}
@@ -230,11 +230,11 @@ export default function ReviewsPage() {
           ))}
         </div>
       ) : reviews.length === 0 ? (
-        <Card className="flex flex-col items-center justify-center p-16 text-center border-white/[0.08] bg-[#0A0E18]">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 mb-3 shadow-lg shadow-indigo-500/10">
+        <Card className="flex flex-col items-center justify-center p-16 text-center border-zinc-200/80 dark:border-white/[0.08] bg-white/90 dark:bg-[#0A0E18]">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 mb-3 shadow-lg shadow-indigo-500/10">
             <GitPullRequest className="h-6 w-6" />
           </div>
-          <h3 className="text-sm font-semibold text-white mb-1">No reviews match your filters</h3>
+          <h3 className="text-sm font-semibold text-zinc-900 dark:text-white mb-1">No reviews match your filters</h3>
           <p className="text-xs text-zinc-500 max-w-sm">
             Try adjusting your search query, repository dropdown, or date range filter.
           </p>
@@ -271,40 +271,40 @@ export default function ReviewsPage() {
                 className="block group"
               >
                 <Card
-                  className={`border-white/[0.08] bg-[#0A0E18] hover:bg-white/[0.03] transition-all duration-300 ${statusBorder} hover:-translate-y-0.5 hover:shadow-lg`}
+                  className={`border-zinc-200/80 dark:border-white/[0.08] bg-white/90 dark:bg-[#0A0E18] hover:bg-zinc-50 dark:hover:bg-white/[0.03] transition-all duration-300 ${statusBorder} hover:-translate-y-0.5 hover:shadow-md`}
                 >
                   <CardContent className="p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     {/* PR Info */}
                     <div className="flex items-start gap-4 min-w-0 flex-1">
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 group-hover:scale-105 transition-transform">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 group-hover:scale-105 transition-transform">
                         <GitPullRequest className="h-5 w-5" />
                       </div>
                       <div className="min-w-0 space-y-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="font-semibold text-sm text-white group-hover:text-indigo-300 transition-colors truncate">
+                          <h3 className="font-semibold text-sm text-zinc-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors truncate">
                             {review.prTitle || `PR #${review.prNumber}`}
                           </h3>
                           <StatusBadge status={review.status} />
                           <RiskBadge score={review.riskScore} />
                         </div>
-                        <p className="text-xs text-zinc-400 truncate">
-                          <span className="font-mono text-zinc-300">{review.repo.fullName}</span> · PR #{review.prNumber}
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
+                          <span className="font-mono text-zinc-700 dark:text-zinc-300">{review.repo.fullName}</span> · PR #{review.prNumber}
                         </p>
                       </div>
                     </div>
 
                     {/* Metadata Stats & Dates */}
-                    <div className="flex flex-wrap items-center gap-6 text-xs text-zinc-500 md:self-center">
+                    <div className="flex flex-wrap items-center gap-6 text-xs text-zinc-500 dark:text-zinc-400 md:self-center">
                       <div className="flex items-center gap-1.5">
-                        <FileCode2 className="h-4 w-4 text-zinc-600" />
+                        <FileCode2 className="h-4 w-4 text-zinc-400 dark:text-zinc-600" />
                         <span>{review.filesReviewed} files</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <MessageSquare className="h-4 w-4 text-zinc-600" />
+                        <MessageSquare className="h-4 w-4 text-zinc-400 dark:text-zinc-600" />
                         <span>{review.commentsCount} comments</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <Calendar className="h-4 w-4 text-zinc-600" />
+                        <Calendar className="h-4 w-4 text-zinc-400 dark:text-zinc-600" />
                         <span>{formatRelativeDate(review.createdAt)}</span>
                       </div>
 
@@ -317,13 +317,13 @@ export default function ReviewsPage() {
                               e.stopPropagation();
                               window.open(review.commentUrl!, "_blank");
                             }}
-                            className="p-1.5 text-zinc-500 hover:text-indigo-400 hover:bg-white/5 rounded-lg transition-all cursor-pointer"
+                            className="p-1.5 text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-zinc-100 dark:hover:bg-white/5 rounded-lg transition-all cursor-pointer"
                             title="View on GitHub"
                           >
                             <ExternalLink className="h-4 w-4" />
                           </span>
                         )}
-                        <ChevronRight className="h-5 w-5 text-zinc-600 group-hover:text-white transition-colors" />
+                        <ChevronRight className="h-5 w-5 text-zinc-400 dark:text-zinc-600 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors" />
                       </div>
                     </div>
                   </CardContent>

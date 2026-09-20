@@ -93,62 +93,62 @@ export default function TeamMemoryPage() {
     <div className="space-y-8">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
-          <Brain className="h-6 w-6 text-indigo-400" />
+        <h1 className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2.5">
+          <Brain className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
           Team Memory
         </h1>
-        <p className="text-sm text-zinc-400">Rules and conventions learned from pull request reviews and developer decisions.</p>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">Rules and conventions learned from pull request reviews and developer decisions.</p>
       </div>
 
       {/* Category Stats Breakdown Grid */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <div className="glass-card p-5 space-y-2">
-          <div className="flex items-center justify-between text-zinc-500 text-xs font-semibold uppercase tracking-wider">
+          <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400 text-xs font-semibold uppercase tracking-wider">
             <span>Security Rules</span>
-            <ShieldCheck className="h-4 w-4 text-emerald-400" />
+            <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
           </div>
-          <p className="text-3xl font-bold text-white">{getCount("security")}</p>
+          <p className="text-3xl font-bold text-zinc-900 dark:text-white">{getCount("security")}</p>
           <p className="text-[10px] text-zinc-500">Learned credential leak prevention</p>
         </div>
 
         <div className="glass-card p-5 space-y-2">
-          <div className="flex items-center justify-between text-zinc-500 text-xs font-semibold uppercase tracking-wider">
+          <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400 text-xs font-semibold uppercase tracking-wider">
             <span>Performance</span>
-            <Zap className="h-4 w-4 text-violet-400" />
+            <Zap className="h-4 w-4 text-violet-600 dark:text-violet-400" />
           </div>
-          <p className="text-3xl font-bold text-white">{getCount("performance")}</p>
+          <p className="text-3xl font-bold text-zinc-900 dark:text-white">{getCount("performance")}</p>
           <p className="text-[10px] text-zinc-500">Avoided rendering bottlenecks</p>
         </div>
 
         <div className="glass-card p-5 space-y-2">
-          <div className="flex items-center justify-between text-zinc-500 text-xs font-semibold uppercase tracking-wider">
+          <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400 text-xs font-semibold uppercase tracking-wider">
             <span>Code Smells</span>
-            <AlertTriangle className="h-4 w-4 text-amber-400" />
+            <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
           </div>
-          <p className="text-3xl font-bold text-white">{getCount("codesmell")}</p>
+          <p className="text-3xl font-bold text-zinc-900 dark:text-white">{getCount("codesmell")}</p>
           <p className="text-[10px] text-zinc-500">Anticipated parsing discrepancies</p>
         </div>
 
         <div className="glass-card p-5 space-y-2">
-          <div className="flex items-center justify-between text-zinc-500 text-xs font-semibold uppercase tracking-wider">
+          <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400 text-xs font-semibold uppercase tracking-wider">
             <span>Active Rules</span>
-            <Brain className="h-4 w-4 text-indigo-400" />
+            <Brain className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
           </div>
-          <p className="text-3xl font-bold text-indigo-400">{stats?.totalEntries || entries.length}</p>
+          <p className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">{stats?.totalEntries || entries.length}</p>
           <p className="text-[10px] text-zinc-500">Total verified team conventions</p>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-white/[0.06] pb-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-zinc-200/80 dark:border-white/[0.06] pb-6">
         {/* Category Tabs */}
-        <div className="flex flex-wrap rounded-xl bg-white/[0.03] p-1 border border-white/[0.05] self-start gap-1">
+        <div className="flex flex-wrap rounded-xl bg-zinc-100/80 dark:bg-white/[0.03] p-1 border border-zinc-200/60 dark:border-white/[0.05] self-start gap-1">
           <button
             onClick={() => setCategoryFilter("all")}
             className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold tracking-wide transition-all cursor-pointer ${
               categoryFilter === "all"
-                ? "bg-gradient-to-r from-indigo-500/20 to-violet-500/15 text-white border border-indigo-500/30 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]"
-                : "text-zinc-400 hover:text-white hover:bg-white/[0.03]"
+                ? "bg-white dark:bg-gradient-to-r dark:from-indigo-500/20 dark:to-violet-500/15 text-indigo-700 dark:text-white border border-zinc-200 dark:border-indigo-500/30 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]"
+                : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-white/[0.03]"
             }`}
           >
             All Rules
@@ -159,8 +159,8 @@ export default function TeamMemoryPage() {
               onClick={() => setCategoryFilter(cat)}
               className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold tracking-wide transition-all cursor-pointer ${
                 categoryFilter.toLowerCase() === cat.toLowerCase()
-                  ? "bg-gradient-to-r from-indigo-500/20 to-violet-500/15 text-white border border-indigo-500/30 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]"
-                  : "text-zinc-400 hover:text-white hover:bg-white/[0.03]"
+                  ? "bg-white dark:bg-gradient-to-r dark:from-indigo-500/20 dark:to-violet-500/15 text-indigo-700 dark:text-white border border-zinc-200 dark:border-indigo-500/30 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]"
+                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-white/[0.03]"
               }`}
             >
               {cat}
@@ -170,13 +170,13 @@ export default function TeamMemoryPage() {
 
         {/* Search */}
         <div className="relative w-full max-w-sm">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 dark:text-zinc-500" />
           <input
             type="text"
             placeholder="Search rules, files, repositories..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-10 pl-10 pr-4 rounded-xl border border-white/[0.08] bg-white/[0.03] text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500/50 transition-colors"
+            className="w-full h-10 pl-10 pr-4 rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-zinc-50 dark:bg-white/[0.03] text-sm text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-indigo-500/50 transition-colors"
           />
         </div>
       </div>
@@ -184,8 +184,8 @@ export default function TeamMemoryPage() {
       {/* Memory Rules List */}
       {filteredEntries.length === 0 ? (
         <Card className="flex flex-col items-center justify-center p-16 text-center">
-          <Brain className="h-12 w-12 text-zinc-600 mb-4" />
-          <h3 className="text-sm font-semibold text-white mb-1">No memory rules found</h3>
+          <Brain className="h-12 w-12 text-zinc-400 dark:text-zinc-600 mb-4" />
+          <h3 className="text-sm font-semibold text-zinc-900 dark:text-white mb-1">No memory rules found</h3>
           <p className="text-xs text-zinc-500 max-w-xs">
             Conventions are learned and stored once review findings are approved on PRs.
           </p>
@@ -193,36 +193,36 @@ export default function TeamMemoryPage() {
       ) : (
         <div className="space-y-4">
           {filteredEntries.map((entry) => (
-            <Card key={entry.id} className="relative overflow-hidden hover:border-white/[0.14] hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 border-l-2 border-l-indigo-500/70">
+            <Card key={entry.id} className="relative overflow-hidden hover:border-zinc-300 dark:hover:border-white/[0.14] hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 border-l-2 border-l-indigo-500">
               <CardContent className="p-6 space-y-4">
                 <div className="flex items-center gap-2.5">
-                  <span className="rounded-lg bg-indigo-500/15 px-2.5 py-0.5 text-xs font-semibold text-indigo-300 border border-indigo-500/25">
+                  <span className="rounded-lg bg-indigo-50 dark:bg-indigo-500/15 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/25">
                     {entry.decisionType}
                   </span>
-                  <span className="rounded-lg bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
+                  <span className="rounded-lg bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 uppercase tracking-wider">
                     {entry.outcome}
                   </span>
-                  <span className="inline-flex items-center gap-1 rounded-md bg-white/[0.04] px-2 py-0.5 text-[10px] font-mono text-zinc-400 border border-white/[0.06]">
+                  <span className="inline-flex items-center gap-1 rounded-md bg-zinc-100 dark:bg-white/[0.04] px-2 py-0.5 text-[10px] font-mono text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-white/[0.06]">
                     384-dim Vector
                   </span>
-                  <span className="ml-auto text-xs text-zinc-400 font-mono font-medium">
+                  <span className="ml-auto text-xs text-zinc-500 dark:text-zinc-400 font-mono font-medium">
                     PR #{entry.prNumber}
                   </span>
                 </div>
 
-                <p className="text-sm text-zinc-200 leading-relaxed font-sans">
+                <p className="text-sm text-zinc-800 dark:text-zinc-200 leading-relaxed font-sans">
                   {entry.content}
                 </p>
 
-                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-zinc-400 border-t border-white/[0.06] pt-4">
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-zinc-500 dark:text-zinc-400 border-t border-zinc-200/80 dark:border-white/[0.06] pt-4">
                   <div className="flex items-center gap-1.5">
-                    <FolderGit2 className="h-3.5 w-3.5 text-indigo-400" />
-                    <span className="font-mono text-zinc-300">{entry.repo.fullName}</span>
+                    <FolderGit2 className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+                    <span className="font-mono text-zinc-700 dark:text-zinc-300">{entry.repo.fullName}</span>
                   </div>
                   {entry.filePath && (
                     <div className="flex items-center gap-1.5">
-                      <BookOpen className="h-3.5 w-3.5 text-zinc-500" />
-                      <span className="font-mono text-zinc-400">{entry.filePath}</span>
+                      <BookOpen className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
+                      <span className="font-mono text-zinc-600 dark:text-zinc-400">{entry.filePath}</span>
                     </div>
                   )}
                   <span className="ml-auto text-[11px] text-zinc-500">

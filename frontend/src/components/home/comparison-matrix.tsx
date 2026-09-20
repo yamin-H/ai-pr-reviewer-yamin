@@ -1,6 +1,11 @@
 "use client";
 
-import { Check, X, Brain, Zap, Shield, Sparkles, Sliders } from "lucide-react";
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Check, X, Sparkles } from "lucide-react";
+
+gsap.registerPlugin(ScrollTrigger);
 
 interface ComparisonRow {
   capability: string;
@@ -45,81 +50,155 @@ const COMPARISONS: ComparisonRow[] = [
 ];
 
 export function ComparisonMatrix() {
-  return (
-    <div className="w-full rounded-2xl border border-white/[0.08] bg-[#0A0D17]/85 backdrop-blur-xl overflow-hidden shadow-2xl">
-      <div className="p-6 sm:p-8 border-b border-white/[0.06] flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-300 mb-2">
-            <Sparkles className="h-3.5 w-3.5" />
-            Architectural Differentiation
-          </div>
-          <h3 className="text-xl font-extrabold text-white tracking-tight">
-            Why Standard AI Bots Fail at Code Review
-          </h3>
-          <p className="text-xs text-zinc-400 mt-1 max-w-xl">
-            Generic LLMs don't know your company's internal conventions. Powerful pairs high-throughput models with persistent vector memory and declarative rule sets.
-          </p>
-        </div>
+  const checkmarkRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-        <div className="flex items-center gap-4 text-xs font-semibold">
-          <div className="flex items-center gap-1.5 text-zinc-400">
-            <span className="h-2.5 w-2.5 rounded-full bg-zinc-600" />
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      // Animate rows in on scroll with stagger
+      const validRows = rowRefs.current.filter(Boolean);
+      if (validRows.length > 0 && containerRef.current) {
+        gsap.from(validRows, {
+          scrollTrigger: {
+            trigger: containerRef.current,
+            start: "top 80%",
+            toggleActions: "play none none reverse",
+          },
+          y: 24,
+          opacity: 0,
+          duration: 0.55,
+          ease: "power2.out",
+          stagger: 0.1,
+        });
+      }
+
+      // Animate checkmarks with scale pop
+      const validChecks = checkmarkRefs.current.filter(Boolean);
+      if (validChecks.length > 0 && containerRef.current) {
+        gsap.from(validChecks, {
+          scrollTrigger: {
+            trigger: containerRef.current,
+            start: "top 75%",
+            toggleActions: "play none none reverse",
+          },
+          scale: 0,
+          opacity: 0,
+          duration: 0.4,
+          ease: "back.out(1.7)",
+          stagger: 0.08,
+          delay: 0.2,
+        });
+      }
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  return (
+    <div ref={containerRef} className="w-full">
+      {/* Section header */}
+      <div className="mb-10" data-reveal>
+        <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 dark:border-violet-800/40 bg-violet-50 dark:bg-violet-950/40 px-3 py-1 text-[11px] font-semibold text-[#6D28D9] dark:text-[#A78BFA] mb-4">
+          <Sparkles className="h-3.5 w-3.5" />
+          Architectural Differentiation
+        </div>
+        <h2 className="font-display text-4xl sm:text-5xl font-extrabold tracking-tight text-[#0F0F0F] dark:text-white mb-4">
+          Why Standard AI Bots<br />Fail at Code Review
+        </h2>
+        <div className="accent-line mb-4" />
+        <p className="text-[15px] text-[#4B5563] dark:text-zinc-400 max-w-xl leading-relaxed">
+          Generic LLMs don&apos;t know your company&apos;s internal conventions. Powerful pairs high-throughput models with persistent vector memory and declarative rule sets.
+        </p>
+
+        <div className="flex items-center gap-6 mt-5 text-[13px] font-semibold">
+          <div className="flex items-center gap-2 text-[#9CA3AF] dark:text-zinc-400">
+            <span className="h-2.5 w-2.5 rounded-full bg-[#D1D5DB] dark:bg-zinc-700" />
             Generic LLM Bots
           </div>
-          <div className="flex items-center gap-1.5 text-indigo-400 font-bold">
-            <span className="h-2.5 w-2.5 rounded-full bg-indigo-500 shadow-sm shadow-indigo-500/50" />
+          <div className="flex items-center gap-2 text-[#6D28D9] dark:text-[#A78BFA] font-bold">
+            <span className="h-2.5 w-2.5 rounded-full bg-[#6D28D9] dark:bg-[#A78BFA] shadow-sm shadow-violet-300 dark:shadow-violet-900" />
             Powerful Agent
           </div>
         </div>
       </div>
 
-      <div className="divide-y divide-white/[0.06] overflow-x-auto">
-        {COMPARISONS.map((row, idx) => (
-          <div
-            key={idx}
-            className={`grid grid-cols-12 p-4 sm:p-5 gap-4 items-center transition-colors ${
-              row.isHero ? "bg-indigo-500/[0.02]" : ""
-            }`}
-          >
-            {/* Capability */}
-            <div className="col-span-12 md:col-span-4 flex items-start gap-2.5">
-              <div className="h-6 w-6 rounded-lg bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-zinc-400 shrink-0 mt-0.5">
-                {row.isHero ? (
-                  <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
-                ) : (
-                  <span className="text-[10px] font-mono text-zinc-500">{idx + 1}</span>
-                )}
-              </div>
-              <div>
-                <p className="text-xs font-bold text-white tracking-tight">
+      {/* Comparison table */}
+      <div className="card-light overflow-hidden transition-colors duration-300">
+        {/* Table header */}
+        <div className="grid grid-cols-12 bg-[#FAFAFA] dark:bg-[#080C14] border-b border-[#E5E7EB] dark:border-white/10 px-5 py-3 transition-colors duration-300">
+          <div className="col-span-4 text-[11px] font-bold text-[#9CA3AF] dark:text-zinc-400 uppercase tracking-wider">
+            Capability
+          </div>
+          <div className="col-span-4 text-[11px] font-bold text-[#9CA3AF] dark:text-zinc-400 uppercase tracking-wider hidden sm:block">
+            Generic PR Bot
+          </div>
+          <div className="col-span-4 text-[11px] font-bold text-[#6D28D9] dark:text-[#A78BFA] uppercase tracking-wider hidden sm:block">
+            Powerful Agent
+          </div>
+        </div>
+
+        {/* Rows */}
+        <div className="divide-y divide-[#E5E7EB] dark:divide-white/10">
+          {COMPARISONS.map((row, idx) => (
+            <div
+              key={idx}
+              ref={(el) => { rowRefs.current[idx] = el; }}
+              className={`grid grid-cols-12 px-5 py-4 gap-4 items-start transition-colors duration-200 hover:bg-[#FAFAFA] dark:hover:bg-white/[0.03] ${
+                row.isHero
+                  ? "bg-violet-50/40 dark:bg-violet-950/20"
+                  : idx % 2 === 0
+                  ? "bg-white dark:bg-[#0D1322]"
+                  : "bg-[#FAFAFA]/60 dark:bg-[#080C14]"
+              }`}
+            >
+              {/* Capability label */}
+              <div className="col-span-12 sm:col-span-4 flex items-start gap-2.5">
+                <div
+                  ref={(el) => { checkmarkRefs.current[idx] = el; }}
+                  className={`h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                    row.isHero
+                      ? "bg-[#6D28D9] text-white"
+                      : "bg-[#F3F4F6] dark:bg-white/10 text-[#9CA3AF] dark:text-zinc-400"
+                  }`}
+                >
+                  {row.isHero ? (
+                    <Sparkles className="h-2.5 w-2.5" />
+                  ) : (
+                    <span className="text-[9px] font-mono font-bold">{idx + 1}</span>
+                  )}
+                </div>
+                <p className="text-[13px] font-bold text-[#0F0F0F] dark:text-white tracking-tight leading-snug">
                   {row.capability}
                 </p>
               </div>
-            </div>
 
-            {/* Generic Bots */}
-            <div className="col-span-12 sm:col-span-6 md:col-span-4 p-3 rounded-xl bg-white/[0.01] border border-white/[0.04]">
-              <div className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">
-                <X className="h-3 w-3 text-red-400/80" />
-                Generic PR Bot
+              {/* Generic bots column */}
+              <div className="col-span-12 sm:col-span-4 sm:pt-0.5">
+                <div className="flex items-center gap-1.5 text-[10px] font-bold text-[#9CA3AF] dark:text-zinc-400 uppercase tracking-wider mb-1.5 sm:hidden">
+                  <X className="h-3 w-3 text-red-400" />
+                  Generic PR Bot
+                </div>
+                <p className="text-[12px] text-[#4B5563] dark:text-zinc-400 leading-relaxed">{row.genericBots}</p>
               </div>
-              <p className="text-xs text-zinc-400 leading-relaxed">
-                {row.genericBots}
-              </p>
-            </div>
 
-            {/* Powerful */}
-            <div className="col-span-12 sm:col-span-6 md:col-span-4 p-3 rounded-xl bg-indigo-500/[0.06] border border-indigo-500/20 shadow-inner">
-              <div className="flex items-center gap-1.5 text-[10px] font-bold text-indigo-400 uppercase tracking-wider mb-1">
-                <Check className="h-3 w-3 text-emerald-400 stroke-[3]" />
-                Powerful Engine
+              {/* Powerful column */}
+              <div
+                className={`col-span-12 sm:col-span-4 p-3 rounded-xl sm:pt-0.5 sm:p-0 ${
+                  row.isHero ? "sm:pl-3 border-l-2 border-[#6D28D9] dark:border-[#A78BFA]" : "sm:pl-3 border-l-2 border-transparent"
+                }`}
+              >
+                <div className="flex items-center gap-1.5 text-[10px] font-bold text-[#6D28D9] dark:text-[#A78BFA] uppercase tracking-wider mb-1.5 sm:hidden">
+                  <Check className="h-3 w-3 text-emerald-500 stroke-[3]" />
+                  Powerful Engine
+                </div>
+                <p className={`text-[12px] leading-relaxed font-medium ${row.isHero ? "text-[#0F0F0F] dark:text-white" : "text-[#4B5563] dark:text-zinc-300"}`}>
+                  {row.powerful}
+                </p>
               </div>
-              <p className="text-xs text-zinc-200 font-medium leading-relaxed">
-                {row.powerful}
-              </p>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

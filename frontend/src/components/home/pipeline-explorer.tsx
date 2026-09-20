@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
   GitPullRequest,
   FileCode,
@@ -12,12 +14,13 @@ import {
   MessageSquareCode,
   CheckCircle2,
   ChevronRight,
-  ArrowDown,
   Terminal,
   Cpu,
   Clock,
   Zap,
 } from "lucide-react";
+
+gsap.registerPlugin(ScrollTrigger);
 
 interface PipelineNode {
   id: string;
@@ -204,79 +207,127 @@ const NODES: PipelineNode[] = [
   },
 ];
 
+const CATEGORY_COLORS: Record<string, string> = {
+  ingestion: "#0891B2",
+  analysis: "#6D28D9",
+  synthesis: "#7C3AED",
+  dispatch: "#059669",
+};
+
 export function PipelineExplorer() {
   const [selectedNodeId, setSelectedNodeId] = useState<string>("score_risk");
+  const pulseRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const gsapPulseAnimations = useRef<Record<string, gsap.core.Tween>>({});
 
   const selectedNode = NODES.find((n) => n.id === selectedNodeId) || NODES[4];
 
+  useEffect(() => {
+    // Kill previous pulse animations
+    Object.values(gsapPulseAnimations.current).forEach((t) => t?.kill());
+    gsapPulseAnimations.current = {};
+
+    // Pulse only active node
+    const pulseEl = pulseRefs.current[selectedNodeId];
+    if (pulseEl) {
+      const anim = gsap.to(pulseEl, {
+        scale: 1.6,
+        opacity: 0,
+        duration: 1.1,
+        ease: "power2.out",
+        repeat: -1,
+        transformOrigin: "center center",
+      });
+      gsapPulseAnimations.current[selectedNodeId] = anim;
+    }
+
+    return () => {
+      Object.values(gsapPulseAnimations.current).forEach((t) => t?.kill());
+    };
+  }, [selectedNodeId]);
+
   return (
-    <div className="w-full space-y-6">
-      {/* Visual Pipeline Graph: Horizontal Flow */}
-      <div className="rounded-2xl border border-white/[0.08] bg-[#0A0E1A]/80 backdrop-blur-xl p-4 sm:p-6 shadow-2xl overflow-hidden">
-        <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/[0.06]">
-          <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-              <Cpu className="h-4.5 w-4.5" />
+    <div className="w-full space-y-5">
+      {/* Pipeline graph */}
+      <div className="card-light-md p-5 sm:p-7 overflow-hidden transition-colors duration-300">
+        <div className="flex items-center justify-between mb-6 pb-5 border-b border-[#E5E7EB] dark:border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-violet-50 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-800/40 flex items-center justify-center text-[#6D28D9] dark:text-[#A78BFA]">
+              <Cpu className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white tracking-tight">
+              <h3 className="text-[15px] font-bold text-[#0F0F0F] dark:text-white tracking-tight">
                 Linear LangGraph Execution Graph
               </h3>
-              <p className="text-xs text-zinc-400">
+              <p className="text-[12px] text-[#4B5563] dark:text-zinc-400">
                 Click any pipeline stage to inspect real inputs, schema contracts, and internal logic.
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-xs font-mono text-zinc-400">
-            <Clock className="h-3.5 w-3.5 text-indigo-400" />
+          <div className="hidden sm:flex items-center gap-2 text-[12px] font-mono text-[#4B5563] dark:text-zinc-400">
+            <Clock className="h-3.5 w-3.5 text-[#6D28D9] dark:text-[#A78BFA]" />
             <span>Avg Pipeline Latency: ~1.1s</span>
           </div>
         </div>
 
-        {/* Nodes Grid / Flow Track */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5 relative">
+        {/* Node grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
           {NODES.map((node, index) => {
             const isSelected = node.id === selectedNode.id;
             const Icon = node.icon;
+            const catColor = CATEGORY_COLORS[node.category];
             return (
               <button
                 key={node.id}
                 onClick={() => setSelectedNodeId(node.id)}
-                className={`relative flex flex-col items-center p-3 rounded-xl border text-center transition-all cursor-pointer group ${
+                className={`relative flex flex-col items-center p-3 rounded-xl border text-center transition-all duration-200 cursor-pointer group ${
                   isSelected
-                    ? "bg-indigo-600/20 border-indigo-500 text-white shadow-lg shadow-indigo-500/20 scale-[1.03]"
-                    : "bg-white/[0.02] border-white/[0.06] text-zinc-400 hover:text-white hover:border-white/[0.14] hover:bg-white/[0.04]"
+                    ? "border-[#6D28D9] bg-violet-50 dark:bg-violet-950/40 shadow-sm shadow-violet-100 dark:shadow-none"
+                    : "border-[#E5E7EB] dark:border-white/10 bg-white dark:bg-[#0D1322] hover:border-[#6D28D9]/40 hover:bg-violet-50/40 dark:hover:bg-white/[0.04]"
                 }`}
               >
+                {/* GSAP pulse ring behind active node */}
+                {isSelected && (
+                  <div
+                    ref={(el) => { pulseRefs.current[node.id] = el; }}
+                    className="absolute inset-0 rounded-xl border-2 border-[#6D28D9] dark:border-[#A78BFA] pointer-events-none"
+                    style={{ opacity: 0.5 }}
+                  />
+                )}
+
                 {/* Step badge */}
                 <div
-                  className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-bold mb-2 transition-colors ${
+                  className={`h-5 w-5 rounded-full flex items-center justify-center text-[9px] font-bold mb-2 transition-colors ${
                     isSelected
-                      ? "bg-indigo-500 text-white"
-                      : "bg-white/[0.06] text-zinc-400 group-hover:text-white"
+                      ? "text-white"
+                      : "bg-[#F3F4F6] dark:bg-white/10 text-[#4B5563] dark:text-zinc-400 group-hover:bg-violet-100 group-hover:text-[#6D28D9]"
                   }`}
+                  style={isSelected ? { background: catColor } : {}}
                 >
                   {node.stepNumber}
                 </div>
 
                 <Icon
-                  className={`h-5 w-5 mb-1.5 transition-transform group-hover:scale-110 ${
-                    isSelected ? "text-indigo-300" : "text-zinc-400"
+                  className={`h-4 w-4 mb-1.5 transition-all ${
+                    isSelected ? "text-[#6D28D9] dark:text-[#A78BFA]" : "text-[#9CA3AF] dark:text-zinc-500 group-hover:text-[#6D28D9]"
                   }`}
                 />
 
-                <span className="text-xs font-bold font-mono truncate max-w-full">
+                <span className={`text-[11px] font-bold font-mono truncate max-w-full ${
+                  isSelected ? "text-[#6D28D9] dark:text-[#A78BFA]" : "text-[#4B5563] dark:text-zinc-300"
+                }`}>
                   {node.name}
                 </span>
 
-                <span className="text-[10px] text-zinc-500 font-mono mt-1">
+                <span className={`text-[10px] font-mono mt-1 ${
+                  isSelected ? "text-[#6D28D9]/70 dark:text-[#A78BFA]/70" : "text-[#9CA3AF] dark:text-zinc-500"
+                }`}>
                   {node.latency}
                 </span>
 
-                {/* Arrow indicator */}
+                {/* Arrow connector */}
                 {index < NODES.length - 1 && (
-                  <div className="hidden lg:block absolute -right-2 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-white/[0.15]">
-                    <ChevronRight className="h-3.5 w-3.5" />
+                  <div className="hidden lg:block absolute -right-1.5 top-1/2 -translate-y-1/2 z-10 pointer-events-none">
+                    <ChevronRight className="h-3 w-3 text-[#D1D5DB] dark:text-zinc-700" />
                   </div>
                 )}
               </button>
@@ -285,80 +336,92 @@ export function PipelineExplorer() {
         </div>
       </div>
 
-      {/* Selected Node Deep Inspector */}
+      {/* Selected node inspector */}
       <AnimatePresence mode="wait">
         <motion.div
           key={selectedNode.id}
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.2 }}
-          className="rounded-2xl border border-white/[0.08] bg-[#090C16] p-6 shadow-xl"
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.22, ease: "easeOut" }}
+          className="card-light-md p-6 transition-colors duration-300"
         >
           <div className="grid md:grid-cols-12 gap-6">
-            {/* Left Col: Overview */}
+            {/* Left: overview */}
             <div className="md:col-span-5 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-300">
-                  <selectedNode.icon className="h-5 w-5" />
+                <div
+                  className="h-10 w-10 rounded-xl flex items-center justify-center"
+                  style={{
+                    background: CATEGORY_COLORS[selectedNode.category] + "15",
+                    border: `1px solid ${CATEGORY_COLORS[selectedNode.category]}30`,
+                  }}
+                >
+                  <selectedNode.icon
+                    className="h-5 w-5"
+                    style={{ color: CATEGORY_COLORS[selectedNode.category] }}
+                  />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h4 className="text-base font-bold text-white font-mono">
+                    <h4 className="text-[15px] font-bold text-[#0F0F0F] dark:text-white font-mono">
                       {selectedNode.name}
                     </h4>
-                    <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                    <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-violet-50 dark:bg-violet-950/40 text-[#6D28D9] dark:text-[#A78BFA] border border-violet-200 dark:border-violet-800/40">
                       Step {selectedNode.stepNumber} of 8
                     </span>
                   </div>
-                  <p className="text-xs text-zinc-400 mt-0.5">
-                    Execution Latency: <strong className="text-white font-mono">{selectedNode.latency}</strong>
+                  <p className="text-[12px] text-[#9CA3AF] dark:text-zinc-400 mt-0.5">
+                    Execution Latency:{" "}
+                    <strong className="text-[#0F0F0F] dark:text-white font-mono">{selectedNode.latency}</strong>
                   </p>
                 </div>
               </div>
 
-              <p className="text-xs text-zinc-300 leading-relaxed">
+              <p className="text-[13px] text-[#4B5563] dark:text-zinc-300 leading-relaxed">
                 {selectedNode.description}
               </p>
 
-              <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06] text-xs text-zinc-400 space-y-1.5">
-                <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider block">
+              <div className="p-3.5 rounded-xl bg-[#FAFAFA] dark:bg-[#080C14] border border-[#E5E7EB] dark:border-white/10 transition-colors duration-300">
+                <span className="text-[10px] font-bold text-[#6D28D9] dark:text-[#A78BFA] uppercase tracking-wider block mb-1.5">
                   LangGraph Logic Implementation
                 </span>
-                <p className="text-xs text-zinc-300 leading-relaxed">
+                <p className="text-[12px] text-[#4B5563] dark:text-zinc-400 leading-relaxed">
                   {selectedNode.logicDetail}
                 </p>
               </div>
             </div>
 
-            {/* Right Col: JSON State Contracts */}
+            {/* Right: JSON state contracts */}
             <div className="md:col-span-7 grid sm:grid-cols-2 gap-4">
-              {/* Inputs */}
-              <div className="rounded-xl border border-white/[0.06] bg-[#04060C] p-4 font-mono text-xs">
-                <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/[0.06]">
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <Terminal className="h-3 w-3 text-zinc-500" />
+              <div className="rounded-xl border border-[#E5E7EB] dark:border-white/10 overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#E5E7EB] dark:border-white/10 bg-[#FAFAFA] dark:bg-[#080C14] transition-colors duration-300">
+                  <span className="text-[10px] font-bold text-[#4B5563] dark:text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <Terminal className="h-3 w-3 text-[#9CA3AF] dark:text-zinc-500" />
                     Node Inputs
                   </span>
-                  <span className="text-[10px] text-zinc-600">ReviewState</span>
+                  <span className="text-[10px] text-[#9CA3AF] dark:text-zinc-500 font-mono">ReviewState</span>
                 </div>
-                <pre className="text-indigo-300/90 text-[11px] overflow-x-auto whitespace-pre-wrap leading-relaxed">
-                  {JSON.stringify(selectedNode.inputs, null, 2)}
-                </pre>
+                <div className="bg-[#1E1E2E] p-4">
+                  <pre className="text-[#A6ACCD] text-[11px] overflow-x-auto whitespace-pre-wrap leading-relaxed font-mono">
+                    {JSON.stringify(selectedNode.inputs, null, 2)}
+                  </pre>
+                </div>
               </div>
 
-              {/* Outputs */}
-              <div className="rounded-xl border border-white/[0.06] bg-[#04060C] p-4 font-mono text-xs">
-                <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/[0.06]">
-                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <Zap className="h-3 w-3 text-emerald-500" />
+              <div className="rounded-xl border border-[#E5E7EB] dark:border-white/10 overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#E5E7EB] dark:border-white/10 bg-[#FAFAFA] dark:bg-[#080C14] transition-colors duration-300">
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Zap className="h-3 w-3" />
                     Node State Mutation
                   </span>
-                  <span className="text-[10px] text-emerald-600">State Delta</span>
+                  <span className="text-[10px] text-emerald-400 font-mono">State Delta</span>
                 </div>
-                <pre className="text-emerald-300/90 text-[11px] overflow-x-auto whitespace-pre-wrap leading-relaxed">
-                  {JSON.stringify(selectedNode.outputs, null, 2)}
-                </pre>
+                <div className="bg-[#1E1E2E] p-4">
+                  <pre className="text-emerald-400 text-[11px] overflow-x-auto whitespace-pre-wrap leading-relaxed font-mono">
+                    {JSON.stringify(selectedNode.outputs, null, 2)}
+                  </pre>
+                </div>
               </div>
             </div>
           </div>

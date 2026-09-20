@@ -56,8 +56,8 @@ export default function RepositoriesPage() {
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Connected Repositories</h1>
-          <p className="text-sm text-zinc-400">Manage which repositories Powerful reviews and extracts patterns from.</p>
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight">Connected Repositories</h1>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">Manage which repositories Powerful reviews and extracts patterns from.</p>
         </div>
         <a href={getInstallUrl()} target="_blank" rel="noopener noreferrer">
           <Button className="gap-2">
@@ -68,15 +68,15 @@ export default function RepositoriesPage() {
       </div>
 
       {/* Filters Bar */}
-      <div className="flex items-center gap-4 border-b border-white/[0.06] pb-6">
+      <div className="flex items-center gap-4 border-b border-zinc-200/80 dark:border-white/[0.06] pb-6">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 dark:text-zinc-500" />
           <input
             type="text"
             placeholder="Search connected repositories..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-10 pl-10 pr-4 rounded-xl border border-white/[0.08] bg-white/[0.03] text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500/50 transition-colors"
+            className="w-full h-10 pl-10 pr-4 rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-sm text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-indigo-500/50 transition-colors shadow-xs dark:shadow-none"
           />
         </div>
       </div>
@@ -89,12 +89,12 @@ export default function RepositoriesPage() {
           ))}
         </div>
       ) : repos.length === 0 ? (
-        <Card className="flex flex-col items-center justify-center p-16 text-center border-indigo-500/20 bg-[#0B0F1A]/80 backdrop-blur-xl">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 mb-4 shadow-lg shadow-indigo-500/10">
+        <Card className="flex flex-col items-center justify-center p-16 text-center border-indigo-200 dark:border-indigo-500/20 bg-white dark:bg-[#0B0F1A]/80 backdrop-blur-xl shadow-xs dark:shadow-none">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 mb-4 shadow-lg shadow-indigo-500/10">
             <FolderGit2 className="h-8 w-8" />
           </div>
-          <h3 className="text-base font-bold text-white mb-1.5">No Repositories Connected</h3>
-          <p className="text-xs text-zinc-400 max-w-sm mb-6 leading-relaxed">
+          <h3 className="text-base font-bold text-zinc-900 dark:text-white mb-1.5">No Repositories Connected</h3>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm mb-6 leading-relaxed">
             Install the Powerful GitHub App on your personal account or organization to authorize the autonomous review engine on your repositories.
           </p>
           <a href={getInstallUrl()} target="_blank" rel="noopener noreferrer">
@@ -106,8 +106,8 @@ export default function RepositoriesPage() {
         </Card>
       ) : filteredRepos.length === 0 ? (
         <Card className="flex flex-col items-center justify-center p-12 text-center">
-          <FolderGit2 className="h-12 w-12 text-zinc-600 mb-4" />
-          <h3 className="text-sm font-semibold text-white mb-1">No repositories match &quot;{search}&quot;</h3>
+          <FolderGit2 className="h-12 w-12 text-zinc-400 dark:text-zinc-600 mb-4" />
+          <h3 className="text-sm font-semibold text-zinc-900 dark:text-white mb-1">No repositories match &quot;{search}&quot;</h3>
           <p className="text-xs text-zinc-500 max-w-xs mb-4">
             Try adjusting your search filters to find what you&apos;re looking for.
           </p>
@@ -121,14 +121,14 @@ export default function RepositoriesPage() {
           {filteredRepos.map((repo) => {
             const isSyncing = syncingRepoId === repo.id;
             return (
-              <Card key={repo.id} className="relative overflow-hidden group hover:border-white/[0.16] hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+              <Card key={repo.id} className="relative overflow-hidden group hover:border-zinc-300 dark:hover:border-white/[0.16] hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
                 {/* Visual decoration overlay */}
                 <div className="absolute top-0 right-0 h-24 w-24 bg-gradient-to-br from-indigo-500/10 to-transparent rounded-bl-full pointer-events-none group-hover:from-indigo-500/20 transition-all" />
                 
                 <CardHeader className="p-6 pb-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className="h-9 w-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0 group-hover:scale-105 transition-transform">
+                      <div className="h-9 w-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 group-hover:scale-105 transition-transform">
                         <FolderGit2 className="h-4.5 w-4.5" />
                       </div>
                       <div className="flex flex-wrap items-center gap-1.5">
@@ -146,8 +146,8 @@ export default function RepositoriesPage() {
                           )}
                         </Badge>
                         {repo.customRulesCount && repo.customRulesCount > 0 ? (
-                          <Badge variant="info" className="text-[10px] px-2 py-0.5 bg-indigo-500/10 text-indigo-300 border-indigo-500/30">
-                            <FileCode className="h-2.5 w-2.5 mr-1 text-indigo-400" />
+                          <Badge variant="info" className="text-[10px] px-2 py-0.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-500/30">
+                            <FileCode className="h-2.5 w-2.5 mr-1 text-indigo-600 dark:text-indigo-400" />
                             {repo.customRulesCount} rules
                           </Badge>
                         ) : null}
@@ -157,36 +157,36 @@ export default function RepositoriesPage() {
                       href={`https://github.com/${repo.fullName}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-1 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                      className="p-1 text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/10 rounded-lg transition-colors"
                       title="Open in GitHub"
                     >
                       <ExternalLink className="h-4 w-4" />
                     </a>
                   </div>
                   <div className="mt-3.5 space-y-1">
-                    <CardTitle className="text-base font-bold text-white tracking-tight truncate">{repo.name}</CardTitle>
-                    <CardDescription className="text-xs font-mono text-zinc-400 truncate">{repo.fullName}</CardDescription>
+                    <CardTitle className="text-base font-bold text-zinc-900 dark:text-white tracking-tight truncate">{repo.name}</CardTitle>
+                    <CardDescription className="text-xs font-mono text-zinc-500 dark:text-zinc-400 truncate">{repo.fullName}</CardDescription>
                   </div>
                 </CardHeader>
                 <CardContent className="p-6 pt-0 space-y-5">
                   {/* Repo metrics */}
-                  <div className="grid grid-cols-3 gap-2 border-t border-b border-white/[0.06] py-4 bg-white/[0.01] rounded-xl px-3 text-center">
+                  <div className="grid grid-cols-3 gap-2 border-t border-b border-zinc-200/80 dark:border-white/[0.06] py-4 bg-zinc-50/50 dark:bg-white/[0.01] rounded-xl px-3 text-center">
                     <div>
-                      <p className="text-xl font-extrabold text-white">{repo._count.reviews}</p>
-                      <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Reviews</p>
+                      <p className="text-xl font-extrabold text-zinc-900 dark:text-white">{repo._count.reviews}</p>
+                      <p className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Reviews</p>
                     </div>
                     <div>
-                      <p className="text-xl font-extrabold text-emerald-400">{repo._count.memoryEntries}</p>
-                      <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Learned</p>
+                      <p className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400">{repo._count.memoryEntries}</p>
+                      <p className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Learned</p>
                     </div>
                     <div>
-                      <p className="text-xl font-extrabold text-indigo-400">{repo.customRulesCount ?? 0}</p>
-                      <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">YAML Rules</p>
+                      <p className="text-xl font-extrabold text-indigo-600 dark:text-indigo-400">{repo.customRulesCount ?? 0}</p>
+                      <p className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">YAML Rules</p>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between pt-1">
-                    <span className="text-[11px] text-zinc-400 font-medium">
+                    <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
                       {new Date(repo.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                     </span>
                     <Button

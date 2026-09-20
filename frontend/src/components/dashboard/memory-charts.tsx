@@ -28,9 +28,9 @@ const CustomTooltip = ({
 }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-white/10 bg-[#1a1f2e] px-3 py-2 shadow-xl">
-      <p className="text-xs text-zinc-400">{label || payload[0].name}</p>
-      <p className="text-sm font-semibold text-white">{payload[0].value}</p>
+    <div className="rounded-lg border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#1a1f2e] px-3 py-2 shadow-xl">
+      <p className="text-xs text-zinc-500 dark:text-zinc-400">{label || payload[0].name}</p>
+      <p className="text-sm font-semibold text-zinc-900 dark:text-white">{payload[0].value}</p>
     </div>
   );
 };
@@ -42,15 +42,15 @@ export function MemoryCharts({
 }) {
   if (stats.totalEntries === 0) {
     return (
-      <Card className="border border-white/[0.08] bg-[#0B0F1A]/90 p-6">
+      <Card className="border border-zinc-200/80 dark:border-white/[0.08] bg-white dark:bg-[#0B0F1A]/90 p-6 shadow-xs dark:shadow-none">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
               <Brain className="h-6 w-6" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-base font-bold text-white">Team Memory Bank is Empty</h3>
-              <p className="text-xs text-zinc-400 max-w-xl leading-relaxed">
+              <h3 className="text-base font-bold text-zinc-900 dark:text-white">Team Memory Bank is Empty</h3>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 max-w-xl leading-relaxed">
                 The Memory Bank uses pgvector RAG embeddings to recall how your senior engineers prefer code to be structured. It populates automatically when you approve or dismiss PR review comments, or when you scan past merged PRs.
               </p>
             </div>
@@ -162,7 +162,7 @@ export function RecentMemoryEntries({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Memory Entries</CardTitle>
+        <CardTitle className="text-zinc-900 dark:text-white">Recent Memory Entries</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {entries.length === 0 ? (
@@ -173,21 +173,21 @@ export function RecentMemoryEntries({
           entries.map((entry) => (
             <div
               key={entry.id}
-              className="rounded-xl border border-white/[0.04] bg-white/[0.02] p-4"
+              className="rounded-xl border border-zinc-100 dark:border-white/[0.04] bg-zinc-50/50 dark:bg-white/[0.02] p-4"
             >
               <div className="mb-2 flex items-center gap-2">
-                <span className="rounded-md bg-indigo-500/10 px-2 py-0.5 text-xs font-medium text-indigo-300">
+                <span className="rounded-md bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/20">
                   {entry.decisionType}
                 </span>
-                <span className="rounded-md bg-white/5 px-2 py-0.5 text-xs text-zinc-400 capitalize">
+                <span className="rounded-md bg-zinc-100 dark:bg-white/5 px-2 py-0.5 text-xs text-zinc-700 dark:text-zinc-400 capitalize border border-zinc-200 dark:border-transparent">
                   {entry.outcome}
                 </span>
-                <span className="ml-auto text-xs text-zinc-600">
+                <span className="ml-auto text-xs text-zinc-400 dark:text-zinc-500 font-mono">
                   PR #{entry.prNumber}
                 </span>
               </div>
-              <p className="text-sm text-zinc-300 line-clamp-2">{entry.content}</p>
-              <p className="mt-2 text-xs text-zinc-600">{entry.repo.fullName}</p>
+              <p className="text-sm text-zinc-800 dark:text-zinc-300 line-clamp-2">{entry.content}</p>
+              <p className="mt-2 text-xs text-zinc-500">{entry.repo.fullName}</p>
             </div>
           ))
         )}

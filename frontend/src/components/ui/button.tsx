@@ -9,14 +9,14 @@ const buttonVariants = cva(
         default:
           "bg-gradient-to-r from-indigo-500 via-indigo-600 to-violet-600 text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2),0_4px_12px_rgba(99,102,241,0.25)] hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.25),0_6px_20px_rgba(99,102,241,0.4)] hover:brightness-110",
         secondary:
-          "bg-white/[0.05] text-zinc-200 border border-white/[0.1] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] hover:bg-white/[0.08] hover:border-white/[0.18] hover:text-white",
-        ghost: "text-zinc-400 hover:text-white hover:bg-white/[0.06]",
+          "bg-zinc-100 dark:bg-white/[0.05] text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-white/[0.1] shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] hover:bg-zinc-200/80 dark:hover:bg-white/[0.08] hover:border-zinc-300 dark:hover:border-white/[0.18] hover:text-zinc-900 dark:hover:text-white",
+        ghost: "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-white/[0.06]",
         outline:
-          "border border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/10 hover:border-indigo-500/50",
+          "border border-indigo-500/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:border-indigo-500/50",
         danger:
-          "bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30",
+          "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30",
         success:
-          "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 hover:bg-emerald-500/20 hover:border-emerald-500/30",
+          "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 hover:bg-emerald-500/20 hover:border-emerald-500/30",
       },
       size: {
         default: "h-10 px-5 py-2",

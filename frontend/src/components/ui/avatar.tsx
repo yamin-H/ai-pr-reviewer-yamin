@@ -21,7 +21,7 @@ export function Avatar({
         src={src}
         alt={alt}
         className={cn(
-          "rounded-full ring-2 ring-white/10 object-cover",
+          "rounded-full ring-2 ring-zinc-200 dark:ring-white/10 object-cover",
           sizeClass,
           className,
         )}
@@ -32,7 +32,7 @@ export function Avatar({
   return (
     <div
       className={cn(
-        "rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-semibold ring-2 ring-white/10",
+        "rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-semibold ring-2 ring-zinc-200 dark:ring-white/10",
         sizeClass,
         className,
       )}

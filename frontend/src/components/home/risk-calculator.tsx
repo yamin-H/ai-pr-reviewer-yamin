@@ -1,16 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useRef, useCallback } from "react";
+import gsap from "gsap";
 import {
   ShieldAlert,
   ShieldCheck,
   FileCode,
   GitCommit,
   Layers,
-  AlertTriangle,
   Sparkles,
-  ExternalLink,
   Check,
 } from "lucide-react";
 
@@ -20,71 +18,122 @@ export function RiskCalculator() {
   const [hasCriticalFiles, setHasCriticalFiles] = useState<boolean>(true);
   const [dismissalRate, setDismissalRate] = useState<number>(18);
 
+  // Displayed (animated) score
+  const [displayScore, setDisplayScore] = useState<number>(0);
+  const scoreAnimRef = useRef<gsap.core.Tween | null>(null);
+  const scoreDisplayObj = useRef({ val: 0 });
+
+  // Displayed (animated) breakdown values
+  const displayDiffRef = useRef<HTMLSpanElement>(null);
+  const displayFileRef = useRef<HTMLSpanElement>(null);
+  const displayCritRef = useRef<HTMLSpanElement>(null);
+  const displayDismissRef = useRef<HTMLSpanElement>(null);
+  const displayTotalRef = useRef<HTMLSpanElement>(null);
+
+  // Gauge ref
+  const gaugeCircleRef = useRef<SVGCircleElement>(null);
+
   // Exact reproduction of Tier 3 Feature 1 Python algorithm in score_risk.py:
-  // 1. Diff size: 0-30 pts (min(30, round(lines / 1000 * 30)))
   const diffScore = Math.min(30, Math.round((linesOfCode / 1000) * 30));
-
-  // 2. File count: 0-20 pts (min(20, round(files / 20 * 20)))
   const fileScore = Math.min(20, Math.round((fileCount / 20) * 20));
-
-  // 3. Critical files: 0-35 pts
   const criticalScore = hasCriticalFiles ? 35 : 0;
-
-  // 4. Team dismissal rate: 0-15 pts (round(rate / 100 * 15))
   const dismissalScore = Math.round((dismissalRate / 100) * 15);
-
   const totalScore = Math.min(100, diffScore + fileScore + criticalScore + dismissalScore);
 
   const isLow = totalScore < 30;
   const isHigh = totalScore > 70;
   const isMed = !isLow && !isHigh;
 
-  const statusColor = isLow
-    ? "text-emerald-400"
-    : isMed
-    ? "text-amber-400"
-    : "text-red-400";
-
-  const statusBg = isLow
-    ? "bg-emerald-500/10 border-emerald-500/20"
-    : isMed
-    ? "bg-amber-500/10 border-amber-500/20"
-    : "bg-red-500/10 border-red-500/20";
-
-  const statusLabel = isLow
-    ? "Low Risk"
-    : isMed
-    ? "Elevated Risk"
-    : "Critical Risk";
-
+  const statusLabel = isLow ? "Low Risk" : isMed ? "Elevated Risk" : "Critical Risk";
   const ghState = isLow ? "success" : isMed ? "neutral" : "failure";
 
+  const gaugeColor = isLow ? "#10B981" : isMed ? "#F59E0B" : "#EF4444";
+  const statusTextColor = isLow ? "text-emerald-600" : isMed ? "text-amber-600" : "text-red-600";
+  const statusBg = isLow ? "bg-emerald-50 border-emerald-200 text-emerald-700" : isMed ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-red-50 border-red-200 text-red-700";
+
+  const circumference = 2 * Math.PI * 72;
+
+  // Animate gauge and score counter whenever totalScore changes
+  useEffect(() => {
+    // Kill previous tween
+    scoreAnimRef.current?.kill();
+
+    const targetDashOffset = circumference * (1 - totalScore / 100);
+
+    // GSAP tween for the SVG gauge arc
+    if (gaugeCircleRef.current) {
+      gsap.to(gaugeCircleRef.current, {
+        strokeDashoffset: targetDashOffset,
+        duration: 0.7,
+        ease: "power2.out",
+      });
+    }
+
+    // GSAP tween for the score number counter
+    const startVal = scoreDisplayObj.current.val;
+    scoreAnimRef.current = gsap.to(scoreDisplayObj.current, {
+      val: totalScore,
+      duration: 0.6,
+      ease: "power2.out",
+      onUpdate: () => {
+        setDisplayScore(Math.round(scoreDisplayObj.current.val));
+      },
+    });
+
+    // Animate breakdown numbers too
+    const animRef = (el: HTMLSpanElement | null, target: number, suffix = "pt") => {
+      if (!el) return;
+      const obj = { val: 0 };
+      gsap.to(obj, {
+        val: target,
+        duration: 0.5,
+        ease: "power2.out",
+        onUpdate: () => { el.textContent = Math.round(obj.val) + suffix; },
+      });
+    };
+
+    animRef(displayDiffRef.current, diffScore);
+    animRef(displayFileRef.current, fileScore);
+    animRef(displayCritRef.current, criticalScore);
+    animRef(displayDismissRef.current, dismissalScore);
+  }, [totalScore, diffScore, fileScore, criticalScore, dismissalScore, circumference]);
+
+  // Initialize gauge dasharray on mount
+  useEffect(() => {
+    if (gaugeCircleRef.current) {
+      gaugeCircleRef.current.style.strokeDasharray = String(circumference);
+      gaugeCircleRef.current.style.strokeDashoffset = String(circumference * (1 - totalScore / 100));
+    }
+    scoreDisplayObj.current.val = totalScore;
+    setDisplayScore(totalScore);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
-    <div className="w-full rounded-2xl border border-white/[0.08] bg-[#0A0D17]/85 backdrop-blur-xl p-6 sm:p-8 shadow-2xl">
-      <div className="grid lg:grid-cols-12 gap-8 items-center">
-        {/* Left Side: Interactive Sliders & Toggles */}
-        <div className="lg:col-span-7 space-y-6">
+    <div className="w-full card-light-md p-6 sm:p-8 transition-colors duration-300">
+      <div className="grid lg:grid-cols-12 gap-10 items-center">
+        {/* Left: sliders */}
+        <div className="lg:col-span-7 space-y-7">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <ShieldAlert className="h-5 w-5 text-indigo-400" />
-              <h3 className="text-lg font-bold text-white tracking-tight">
+              <ShieldAlert className="h-5 w-5 text-[#6D28D9] dark:text-[#A78BFA]" />
+              <h3 className="text-[18px] font-display font-extrabold text-[#0F0F0F] dark:text-white tracking-tight">
                 Interactive PR Risk Engine
               </h3>
             </div>
-            <p className="text-xs text-zinc-400">
+            <p className="text-[13px] text-[#4B5563] dark:text-zinc-400">
               Powerful scores pull requests based on diff surface area, AST criticality, and historical team dismissal rates. Adjust the parameters below to see the live score computation.
             </p>
           </div>
 
-          <div className="space-y-5">
+          <div className="space-y-6">
             {/* Slider 1: Diff Size */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-zinc-300 font-medium flex items-center gap-1.5">
-                  <Layers className="h-3.5 w-3.5 text-indigo-400" />
+              <div className="flex items-center justify-between text-[13px]">
+                <span className="text-[#0F0F0F] dark:text-zinc-200 font-medium flex items-center gap-1.5">
+                  <Layers className="h-3.5 w-3.5 text-[#6D28D9] dark:text-[#A78BFA]" />
                   Diff Size (LOC Changed)
                 </span>
-                <span className="font-mono font-bold text-white">
+                <span className="font-mono font-bold text-[#0F0F0F] dark:text-white">
                   {linesOfCode} lines ({diffScore}/30 pts)
                 </span>
               </div>
@@ -95,9 +144,9 @@ export function RiskCalculator() {
                 step={10}
                 value={linesOfCode}
                 onChange={(e) => setLinesOfCode(Number(e.target.value))}
-                className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                className="violet-range w-full"
               />
-              <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
+              <div className="flex justify-between text-[10px] text-[#9CA3AF] dark:text-zinc-500 font-mono">
                 <span>10 LOC</span>
                 <span>500 LOC</span>
                 <span>1500+ LOC</span>
@@ -106,12 +155,12 @@ export function RiskCalculator() {
 
             {/* Slider 2: File Count */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-zinc-300 font-medium flex items-center gap-1.5">
-                  <FileCode className="h-3.5 w-3.5 text-indigo-400" />
+              <div className="flex items-center justify-between text-[13px]">
+                <span className="text-[#0F0F0F] dark:text-zinc-200 font-medium flex items-center gap-1.5">
+                  <FileCode className="h-3.5 w-3.5 text-[#6D28D9] dark:text-[#A78BFA]" />
                   Files Changed
                 </span>
-                <span className="font-mono font-bold text-white">
+                <span className="font-mono font-bold text-[#0F0F0F] dark:text-white">
                   {fileCount} files ({fileScore}/20 pts)
                 </span>
               </div>
@@ -122,9 +171,9 @@ export function RiskCalculator() {
                 step={1}
                 value={fileCount}
                 onChange={(e) => setFileCount(Number(e.target.value))}
-                className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                className="violet-range w-full"
               />
-              <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
+              <div className="flex justify-between text-[10px] text-[#9CA3AF] dark:text-zinc-500 font-mono">
                 <span>1 file</span>
                 <span>15 files</span>
                 <span>30 files</span>
@@ -132,37 +181,40 @@ export function RiskCalculator() {
             </div>
 
             {/* Toggle: Critical Files */}
-            <div className="flex items-center justify-between p-3.5 rounded-xl border border-white/[0.08] bg-white/[0.02]">
+            <div className="flex items-center justify-between p-4 rounded-xl border border-[#E5E7EB] dark:border-white/10 bg-[#FAFAFA] dark:bg-[#080C14] transition-colors duration-300">
               <div>
-                <span className="text-xs font-semibold text-white block">
+                <span className="text-[13px] font-semibold text-[#0F0F0F] dark:text-white block">
                   Critical Path Impact (Auth / Database / Payments)
                 </span>
-                <span className="text-[11px] text-zinc-400">
-                  Matches patterns in <code className="text-indigo-300 font-mono">src/auth/*</code>, <code className="text-indigo-300 font-mono">prisma/schema</code>, or <code className="text-indigo-300 font-mono">stripe/*</code>
+                <span className="text-[11px] text-[#4B5563] dark:text-zinc-400">
+                  Matches patterns in{" "}
+                  <code className="text-[#6D28D9] dark:text-[#A78BFA] font-mono bg-violet-50 dark:bg-violet-950/40 px-1 rounded">src/auth/*</code>,{" "}
+                  <code className="text-[#6D28D9] dark:text-[#A78BFA] font-mono bg-violet-50 dark:bg-violet-950/40 px-1 rounded">prisma/schema</code>, or{" "}
+                  <code className="text-[#6D28D9] dark:text-[#A78BFA] font-mono bg-violet-50 dark:bg-violet-950/40 px-1 rounded">stripe/*</code>
                 </span>
               </div>
               <button
                 onClick={() => setHasCriticalFiles(!hasCriticalFiles)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
-                  hasCriticalFiles ? "bg-indigo-600" : "bg-white/10"
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer flex-shrink-0 ml-4 ${
+                  hasCriticalFiles ? "bg-[#6D28D9]" : "bg-[#E5E7EB] dark:bg-white/20"
                 }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${
                     hasCriticalFiles ? "translate-x-6" : "translate-x-1"
                   }`}
                 />
               </button>
             </div>
 
-            {/* Slider 3: Historical Team Dismissal Rate */}
+            {/* Slider 3: Dismissal Rate */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-zinc-300 font-medium flex items-center gap-1.5">
-                  <GitCommit className="h-3.5 w-3.5 text-indigo-400" />
+              <div className="flex items-center justify-between text-[13px]">
+                <span className="text-[#0F0F0F] dark:text-zinc-200 font-medium flex items-center gap-1.5">
+                  <GitCommit className="h-3.5 w-3.5 text-[#6D28D9] dark:text-[#A78BFA]" />
                   Team Historical Dismissal Rate
                 </span>
-                <span className="font-mono font-bold text-white">
+                <span className="font-mono font-bold text-[#0F0F0F] dark:text-white">
                   {dismissalRate}% ({dismissalScore}/15 pts)
                 </span>
               </div>
@@ -173,9 +225,9 @@ export function RiskCalculator() {
                 step={2}
                 value={dismissalRate}
                 onChange={(e) => setDismissalRate(Number(e.target.value))}
-                className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                className="violet-range w-full"
               />
-              <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
+              <div className="flex justify-between text-[10px] text-[#9CA3AF] dark:text-zinc-500 font-mono">
                 <span>0% (High team trust)</span>
                 <span>50%</span>
                 <span>100% (High noise)</span>
@@ -184,89 +236,74 @@ export function RiskCalculator() {
           </div>
         </div>
 
-        {/* Right Side: Visual Gauge & GitHub Check Status Preview */}
-        <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 rounded-xl border border-white/[0.08] bg-[#070A12] space-y-6">
-          {/* Radial Circular Score Display */}
+        {/* Right: gauge + GitHub check */}
+        <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 rounded-2xl border border-[#E5E7EB] dark:border-white/10 bg-[#FAFAFA] dark:bg-[#080C14] space-y-6 transition-colors duration-300">
+          {/* Circular SVG gauge */}
           <div className="relative flex items-center justify-center">
-            {/* Ambient Back Glow */}
-            <div
-              className={`absolute inset-0 rounded-full blur-3xl opacity-30 ${
-                isLow ? "bg-emerald-500" : isMed ? "bg-amber-500" : "bg-red-500"
-              }`}
-            />
-
-            <svg className="w-44 h-44 transform -rotate-90">
+            <svg className="w-44 h-44 -rotate-90" viewBox="0 0 176 176">
+              {/* Track */}
               <circle
                 cx="88"
                 cy="88"
                 r="72"
-                stroke="currentColor"
                 strokeWidth="10"
-                className="text-white/[0.06]"
                 fill="transparent"
+                className="stroke-[#E5E7EB] dark:stroke-white/10 transition-colors duration-300"
               />
-              <motion.circle
+              {/* Animated arc — GSAP controlled */}
+              <circle
+                ref={gaugeCircleRef}
                 cx="88"
                 cy="88"
                 r="72"
-                stroke="currentColor"
+                stroke={gaugeColor}
                 strokeWidth="10"
-                strokeDasharray={2 * Math.PI * 72}
-                strokeDashoffset={2 * Math.PI * 72 * (1 - totalScore / 100)}
                 strokeLinecap="round"
-                className={`${statusColor} transition-all duration-500`}
                 fill="transparent"
+                style={{
+                  strokeDasharray: circumference,
+                  strokeDashoffset: circumference * (1 - totalScore / 100),
+                  transition: "stroke 0.3s ease",
+                }}
               />
             </svg>
 
             <div className="absolute flex flex-col items-center justify-center text-center">
-              <motion.span
-                key={totalScore}
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="text-4xl font-extrabold text-white tracking-tight font-mono"
-              >
-                {totalScore}
-              </motion.span>
-              <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">
+              <span className={`text-4xl font-extrabold tracking-tight font-mono ${statusTextColor}`}>
+                {displayScore}
+              </span>
+              <span className="text-[10px] uppercase font-bold text-[#9CA3AF] dark:text-zinc-500 tracking-wider mt-0.5">
                 out of 100
               </span>
-              <span
-                className={`mt-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${statusBg} ${statusColor}`}
-              >
+              <span className={`mt-2 text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${statusBg}`}>
                 {statusLabel}
               </span>
             </div>
           </div>
 
-          {/* GitHub Commit Status Check Live Mock */}
-          <div className="w-full rounded-xl border border-white/[0.08] bg-[#0B0F1D] p-3.5 space-y-2">
-            <div className="flex items-center justify-between text-[11px] text-zinc-400 font-mono pb-2 border-b border-white/[0.06]">
-              <span className="flex items-center gap-1.5 text-white font-semibold">
-                <GitCommit className="h-3.5 w-3.5 text-indigo-400" />
+          {/* GitHub commit status mock */}
+          <div className="w-full rounded-xl border border-[#E5E7EB] dark:border-white/10 bg-white dark:bg-[#0D1322] p-3.5 space-y-2 transition-colors duration-300">
+            <div className="flex items-center justify-between text-[11px] text-[#4B5563] dark:text-zinc-400 font-mono pb-2.5 border-b border-[#E5E7EB] dark:border-white/10">
+              <span className="flex items-center gap-1.5 text-[#0F0F0F] dark:text-white font-semibold">
+                <GitCommit className="h-3.5 w-3.5 text-[#6D28D9] dark:text-[#A78BFA]" />
                 GitHub Commit Status
               </span>
               <span>context: powerful/risk</span>
             </div>
-
             <div className="flex items-center justify-between pt-1">
               <div className="flex items-center gap-2.5">
                 <div
-                  className={`h-5 w-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${
-                    isLow
-                      ? "bg-emerald-500"
-                      : isMed
-                      ? "bg-amber-500"
-                      : "bg-red-500"
+                  className={`h-5 w-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 ${
+                    isLow ? "bg-emerald-500" : isMed ? "bg-amber-500" : "bg-red-500"
                   }`}
                 >
                   {isLow ? <Check className="h-3 w-3 stroke-[3]" /> : "!"}
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-white">
-                    Powerful — PR Risk: {totalScore}/100 ({statusLabel})
+                  <p className="text-[12px] font-semibold text-[#0F0F0F] dark:text-white">
+                    Powerful — PR Risk: {displayScore}/100 ({statusLabel})
                   </p>
-                  <p className="text-[10px] text-zinc-400">
+                  <p className="text-[10px] text-[#4B5563] dark:text-zinc-400">
                     {isLow
                       ? "Clean diff surface. Ready for standard review."
                       : isMed
@@ -275,29 +312,37 @@ export function RiskCalculator() {
                   </p>
                 </div>
               </div>
-              <span className="text-[10px] font-mono text-zinc-500">
+              <span className="text-[10px] font-mono text-[#9CA3AF] dark:text-zinc-500 flex-shrink-0">
                 {ghState.toUpperCase()}
               </span>
             </div>
           </div>
 
           {/* Breakdown summary */}
-          <div className="w-full grid grid-cols-4 gap-1 text-center text-[10px] font-mono text-zinc-400 pt-2 border-t border-white/[0.06]">
+          <div className="w-full grid grid-cols-4 gap-1 text-center text-[10px] font-mono text-[#4B5563] dark:text-zinc-400 pt-2 border-t border-[#E5E7EB] dark:border-white/10 transition-colors duration-300">
             <div>
-              <p className="text-white font-bold">{diffScore}pt</p>
-              <p className="text-[9px] text-zinc-500">Diff</p>
+              <p className="text-[#0F0F0F] dark:text-white font-bold text-[13px]">
+                <span ref={displayDiffRef}>{diffScore}pt</span>
+              </p>
+              <p className="text-[9px] text-[#9CA3AF] dark:text-zinc-500">Diff</p>
             </div>
             <div>
-              <p className="text-white font-bold">{fileScore}pt</p>
-              <p className="text-[9px] text-zinc-500">Files</p>
+              <p className="text-[#0F0F0F] dark:text-white font-bold text-[13px]">
+                <span ref={displayFileRef}>{fileScore}pt</span>
+              </p>
+              <p className="text-[9px] text-[#9CA3AF] dark:text-zinc-500">Files</p>
             </div>
             <div>
-              <p className="text-white font-bold">{criticalScore}pt</p>
-              <p className="text-[9px] text-zinc-500">Critical</p>
+              <p className="text-[#0F0F0F] dark:text-white font-bold text-[13px]">
+                <span ref={displayCritRef}>{criticalScore}pt</span>
+              </p>
+              <p className="text-[9px] text-[#9CA3AF] dark:text-zinc-500">Critical</p>
             </div>
             <div>
-              <p className="text-white font-bold">{dismissalScore}pt</p>
-              <p className="text-[9px] text-zinc-500">Dismiss</p>
+              <p className="text-[#0F0F0F] dark:text-white font-bold text-[13px]">
+                <span ref={displayDismissRef}>{dismissalScore}pt</span>
+              </p>
+              <p className="text-[9px] text-[#9CA3AF] dark:text-zinc-500">Dismiss</p>
             </div>
           </div>
         </div>

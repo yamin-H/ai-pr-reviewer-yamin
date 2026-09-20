@@ -90,10 +90,10 @@ export default function BillingPage() {
 
   if (error || !data) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center glass-card max-w-lg mx-auto mt-12 p-8 border border-red-500/10 bg-red-500/5">
-        <AlertTriangle className="h-10 w-10 text-red-400 mb-4" />
-        <h3 className="text-lg font-bold text-white mb-2">Error Loading Billing Data</h3>
-        <p className="text-sm text-zinc-400 mb-6">{error || "Could not retrieve organization subscription."}</p>
+      <div className="flex flex-col items-center justify-center py-20 text-center glass-card max-w-lg mx-auto mt-12 p-8 border border-red-500/20 bg-red-50/50 dark:bg-red-500/5">
+        <AlertTriangle className="h-10 w-10 text-red-500 dark:text-red-400 mb-4" />
+        <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-2">Error Loading Billing Data</h3>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">{error || "Could not retrieve organization subscription."}</p>
         <Button onClick={() => window.location.reload()} variant="outline" size="sm">
           Retry Connection
         </Button>
@@ -109,25 +109,25 @@ export default function BillingPage() {
       {/* Page Header */}
       <div>
         <div className="flex items-center gap-2 mb-1">
-          <CreditCard className="h-5 w-5 text-indigo-400" />
-          <h1 className="text-2xl font-bold text-white tracking-tight">Billing & Subscription</h1>
+          <CreditCard className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight">Billing & Subscription</h1>
         </div>
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
           Manage organization tier, monthly review limits, and compute concurrency for @{organization.login}.
         </p>
       </div>
 
       {/* Notification Toast */}
       {notification && (
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-300 flex items-center justify-between shadow-lg animate-in fade-in">
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 p-4 text-emerald-800 dark:text-emerald-300 flex items-center justify-between shadow-sm animate-in fade-in">
           <div className="flex items-center gap-2.5 text-sm font-semibold">
-            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+            <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
             {notification.message}
           </div>
           <button
             type="button"
             onClick={() => setNotification(null)}
-            className="text-xs text-emerald-400/80 hover:text-emerald-200 cursor-pointer"
+            className="text-xs text-emerald-600 dark:text-emerald-400/80 hover:text-emerald-900 dark:hover:text-emerald-200 cursor-pointer"
           >
             Dismiss
           </button>
@@ -135,57 +135,57 @@ export default function BillingPage() {
       )}
 
       {/* Showcase Mode Disclaimer Card */}
-      <div className="rounded-2xl border border-indigo-500/20 bg-gradient-to-r from-indigo-950/30 via-purple-950/20 to-slate-900/40 p-5 backdrop-blur-xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+      <div className="rounded-2xl border border-indigo-200 dark:border-indigo-500/20 bg-gradient-to-r from-indigo-50/80 via-purple-50/50 to-slate-100/60 dark:from-indigo-950/30 dark:via-purple-950/20 dark:to-slate-900/40 p-5 backdrop-blur-xl shadow-sm dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 shrink-0 mt-0.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-500/20 border border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-300 shrink-0 mt-0.5">
               <Sparkles className="h-4 w-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-bold text-white">Interactive Showcase Mode</h2>
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                <h2 className="text-sm font-bold text-zinc-900 dark:text-white">Interactive Showcase Mode</h2>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30">
                   Live Demo
                 </span>
               </div>
-              <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5 leading-relaxed">
                 Live credit card payments are mocked for portfolio review. You can switch between Free, Pro, and Enterprise tiers below to test rate-limiting quotas, BullMQ priority queue behavior, and platform permissions immediately.
               </p>
             </div>
           </div>
           <Link
             href="/dashboard/usage"
-            className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-xs font-semibold text-white hover:bg-white/10 transition-colors"
+            className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-zinc-200 dark:border-white/10 bg-white/80 dark:bg-white/5 px-3.5 py-2 text-xs font-semibold text-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-white/10 transition-colors shadow-xs"
           >
             View Usage Telemetry
-            <ArrowRight className="h-3.5 w-3.5 text-zinc-400" />
+            <ArrowRight className="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" />
           </Link>
         </div>
       </div>
 
       {/* Current Plan Overview Card */}
-      <Card className="border border-white/[0.08] bg-[#0A0E18]">
+      <Card className="border border-zinc-200/80 dark:border-white/[0.08] bg-white/90 dark:bg-[#0A0E18] shadow-sm">
         <CardHeader className="pb-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2.5">
-                <Building2 className="h-4 w-4 text-zinc-400" />
-                <CardTitle className="text-base font-bold text-white">
+                <Building2 className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+                <CardTitle className="text-base font-bold text-zinc-900 dark:text-white">
                   Active Subscription: {subscription.planName}
                 </CardTitle>
                 <Badge variant={subscription.plan === "free" ? "default" : "success"} className="text-[10px]">
                   {subscription.status.toUpperCase()}
                 </Badge>
               </div>
-              <CardDescription className="text-xs text-zinc-400">
+              <CardDescription className="text-xs text-zinc-500 dark:text-zinc-400">
                 Billing cycle resets automatically on the 1st of every month at 00:00 UTC.
               </CardDescription>
             </div>
 
             <div className="flex items-center gap-3">
               <div className="text-right sm:block hidden">
-                <p className="text-xs text-zinc-400">Current Plan Rate</p>
-                <p className="text-lg font-bold text-white">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">Current Plan Rate</p>
+                <p className="text-lg font-bold text-zinc-900 dark:text-white">
                   ${subscription.price}
                   <span className="text-xs text-zinc-500 font-normal"> / {subscription.billingPeriod}</span>
                 </p>
@@ -195,14 +195,14 @@ export default function BillingPage() {
         </CardHeader>
         <CardContent className="pt-2 space-y-6">
           {/* Quota Progress Meter */}
-          <div className="space-y-2.5 rounded-xl border border-white/[0.06] bg-white/[0.01] p-5">
+          <div className="space-y-2.5 rounded-xl border border-zinc-200/80 dark:border-white/[0.06] bg-zinc-50/50 dark:bg-white/[0.01] p-5">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-medium text-zinc-300">Monthly Review Quota Usage</span>
-              <span className="font-mono font-semibold text-white">
+              <span className="font-medium text-zinc-700 dark:text-zinc-300">Monthly Review Quota Usage</span>
+              <span className="font-mono font-semibold text-zinc-900 dark:text-white">
                 {subscription.monthlyReviewCount} / {subscription.monthlyQuota} PRs ({subscription.quotaUsedPercent}%)
               </span>
             </div>
-            <div className="w-full h-2 rounded-full bg-white/[0.06] overflow-hidden">
+            <div className="w-full h-2 rounded-full bg-zinc-200/80 dark:bg-white/[0.06] overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${
                   isHighUsage ? "bg-amber-500" : "bg-gradient-to-r from-indigo-500 to-violet-500"
@@ -218,24 +218,24 @@ export default function BillingPage() {
 
           {/* Org Telemetry Summary */}
           <div className="grid gap-4 sm:grid-cols-3 text-xs">
-            <div className="rounded-xl border border-white/[0.06] p-3.5 bg-white/[0.01]">
+            <div className="rounded-xl border border-zinc-200/80 dark:border-white/[0.06] p-3.5 bg-zinc-50/50 dark:bg-white/[0.01]">
               <span className="text-zinc-500 text-[11px] uppercase tracking-wider font-medium">Worker Concurrency</span>
-              <p className="text-sm font-semibold text-white mt-1 flex items-center gap-1.5">
-                <Cpu className="h-3.5 w-3.5 text-indigo-400" />
+              <p className="text-sm font-semibold text-zinc-900 dark:text-white mt-1 flex items-center gap-1.5">
+                <Cpu className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
                 {subscription.plan === "enterprise" ? "10 parallel threads" : subscription.plan === "pro" ? "3 parallel threads" : "1 thread"}
               </p>
             </div>
-            <div className="rounded-xl border border-white/[0.06] p-3.5 bg-white/[0.01]">
+            <div className="rounded-xl border border-zinc-200/80 dark:border-white/[0.06] p-3.5 bg-zinc-50/50 dark:bg-white/[0.01]">
               <span className="text-zinc-500 text-[11px] uppercase tracking-wider font-medium">Priority Lane</span>
-              <p className="text-sm font-semibold text-white mt-1 flex items-center gap-1.5">
-                <Zap className="h-3.5 w-3.5 text-amber-400" />
+              <p className="text-sm font-semibold text-zinc-900 dark:text-white mt-1 flex items-center gap-1.5">
+                <Zap className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" />
                 {subscription.plan === "free" ? "Standard BullMQ Queue" : "Dedicated High-Priority Lane"}
               </p>
             </div>
-            <div className="rounded-xl border border-white/[0.06] p-3.5 bg-white/[0.01]">
+            <div className="rounded-xl border border-zinc-200/80 dark:border-white/[0.06] p-3.5 bg-zinc-50/50 dark:bg-white/[0.01]">
               <span className="text-zinc-500 text-[11px] uppercase tracking-wider font-medium">Vector Memory</span>
-              <p className="text-sm font-semibold text-white mt-1 flex items-center gap-1.5">
-                <Shield className="h-3.5 w-3.5 text-emerald-400" />
+              <p className="text-sm font-semibold text-zinc-900 dark:text-white mt-1 flex items-center gap-1.5">
+                <Shield className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                 {subscription.plan === "free" ? "Base AST Heuristics" : "Multi-PR Cross-Repository Memory"}
               </p>
             </div>
@@ -246,8 +246,8 @@ export default function BillingPage() {
       {/* Plan Selection Grid */}
       <div className="space-y-4">
         <div>
-          <h2 className="text-lg font-bold text-white tracking-tight">Available Subscription Tiers</h2>
-          <p className="text-xs text-zinc-400 mt-0.5">
+          <h2 className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight">Available Subscription Tiers</h2>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
             Select any tier to instantly switch and test system behavior across quota thresholds.
           </p>
         </div>
@@ -262,13 +262,13 @@ export default function BillingPage() {
                 key={tier.id}
                 className={`relative flex flex-col justify-between rounded-2xl border p-6 transition-all duration-200 ${
                   isCurrent
-                    ? "border-indigo-500/60 bg-gradient-to-b from-indigo-950/40 via-[#0A0E18] to-[#0A0E18] shadow-[0_0_24px_rgba(99,102,241,0.15)] ring-1 ring-indigo-500/30"
-                    : "border-white/[0.08] bg-[#0A0E18] hover:border-white/[0.15] hover:bg-[#0c111e]"
+                    ? "border-indigo-500 bg-gradient-to-b from-indigo-50/60 via-white to-white dark:from-indigo-950/40 dark:via-[#0A0E18] dark:to-[#0A0E18] shadow-md dark:shadow-[0_0_24px_rgba(99,102,241,0.15)] ring-1 ring-indigo-500/30"
+                    : "border-zinc-200/80 dark:border-white/[0.08] bg-white/90 dark:bg-[#0A0E18] hover:border-zinc-300 dark:hover:border-white/[0.15] hover:bg-zinc-50/50 dark:hover:bg-[#0c111e] shadow-sm"
                 }`}
               >
                 {isCurrent && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-lg">
+                    <span className="rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-md">
                       Current Plan
                     </span>
                   </div>
@@ -277,23 +277,23 @@ export default function BillingPage() {
                 <div className="space-y-5">
                   {/* Tier Title & Description */}
                   <div>
-                    <h3 className="text-base font-bold text-white">{tier.name}</h3>
-                    <p className="text-xs text-zinc-400 mt-1 min-h-[32px] leading-relaxed">
+                    <h3 className="text-base font-bold text-zinc-900 dark:text-white">{tier.name}</h3>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 min-h-[32px] leading-relaxed">
                       {tier.description}
                     </p>
                   </div>
 
                   {/* Price */}
-                  <div className="border-t border-b border-white/[0.06] py-4">
+                  <div className="border-t border-b border-zinc-200/80 dark:border-white/[0.06] py-4">
                     <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-extrabold text-white">${tier.price}</span>
-                      <span className="text-xs text-zinc-400">/ {tier.billingPeriod}</span>
+                      <span className="text-3xl font-extrabold text-zinc-900 dark:text-white">${tier.price}</span>
+                      <span className="text-xs text-zinc-500 dark:text-zinc-400">/ {tier.billingPeriod}</span>
                     </div>
                     <div className="flex items-center gap-2 mt-2">
-                      <span className="text-[11px] font-mono font-medium text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded-md border border-indigo-500/20">
+                      <span className="text-[11px] font-mono font-medium text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-500/20">
                         {tier.quota.toLocaleString()} PRs/month
                       </span>
-                      <span className="text-[11px] font-mono text-zinc-400 bg-white/[0.04] px-2 py-0.5 rounded-md border border-white/[0.06]">
+                      <span className="text-[11px] font-mono text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-white/[0.04] px-2 py-0.5 rounded-md border border-zinc-200 dark:border-white/[0.06]">
                         {tier.concurrency} concurrent
                       </span>
                     </div>
@@ -301,11 +301,11 @@ export default function BillingPage() {
 
                   {/* Feature Checklist */}
                   <div className="space-y-2.5 pt-1">
-                    <p className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider">Included Capabilities</p>
-                    <ul className="space-y-2 text-xs text-zinc-400">
+                    <p className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">Included Capabilities</p>
+                    <ul className="space-y-2 text-xs text-zinc-600 dark:text-zinc-400">
                       {tier.features.map((feature, idx) => (
                         <li key={idx} className="flex items-start gap-2">
-                          <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                          <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                           <span className="leading-relaxed">{feature}</span>
                         </li>
                       ))}
@@ -314,10 +314,10 @@ export default function BillingPage() {
                 </div>
 
                 {/* Switch Action */}
-                <div className="pt-8 mt-4 border-t border-white/[0.06]">
+                <div className="pt-8 mt-4 border-t border-zinc-200/80 dark:border-white/[0.06]">
                   {isCurrent ? (
                     <Button disabled variant="outline" className="w-full text-xs font-semibold cursor-default">
-                      <Check className="h-3.5 w-3.5 mr-1.5 text-emerald-400" />
+                      <Check className="h-3.5 w-3.5 mr-1.5 text-emerald-600 dark:text-emerald-400" />
                       Active Plan
                     </Button>
                   ) : (
@@ -348,14 +348,14 @@ export default function BillingPage() {
       </div>
 
       {/* Enterprise SLA Notice */}
-      <div className="rounded-xl border border-white/[0.06] bg-white/[0.01] p-5 text-xs text-zinc-400 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="rounded-xl border border-zinc-200/80 dark:border-white/[0.06] bg-zinc-50/50 dark:bg-white/[0.01] p-5 text-xs text-zinc-600 dark:text-zinc-400 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
         <div className="flex items-center gap-2.5">
-          <Shield className="h-4 w-4 text-indigo-400 shrink-0" />
+          <Shield className="h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
           <span>Need custom VPC isolation, dedicated LLM API keys, or HIPAA/SOC2 enterprise addendums?</span>
         </div>
         <a
           href="mailto:sales@powerful-pr.io?subject=Enterprise%20Autonomous%20PR%20Review"
-          className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 hover:underline shrink-0"
+          className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline shrink-0"
         >
           Contact Solutions Team &rarr;
         </a>

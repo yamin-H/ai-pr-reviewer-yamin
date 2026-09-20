@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import gsap from "gsap";
 import {
   Brain,
   Sparkles,
@@ -141,7 +142,6 @@ export function ReviewSimulator() {
   const handleRunSimulation = () => {
     setIsSimulating(true);
     setCurrentStepIndex(0);
-
     let step = 0;
     const interval = setInterval(() => {
       step++;
@@ -173,30 +173,41 @@ export function ReviewSimulator() {
     });
   };
 
+  const severityStyle = {
+    CRITICAL: "bg-red-50 text-red-600 border-red-200",
+    HIGH: "bg-amber-50 text-amber-600 border-amber-200",
+    WARNING: "bg-violet-50 text-[#6D28D9] border-violet-200",
+  }[scenario.comment.severity];
+
+  const riskStyle =
+    scenario.riskScore > 70
+      ? "bg-red-50 text-red-600 border-red-200"
+      : scenario.riskScore > 30
+      ? "bg-amber-50 text-amber-600 border-amber-200"
+      : "bg-emerald-50 text-emerald-600 border-emerald-200";
+
   return (
-    <div className="w-full rounded-2xl border border-white/[0.08] bg-[#0A0D17]/90 backdrop-blur-2xl shadow-2xl overflow-hidden">
-      {/* Simulator Top Bar */}
-      <div className="border-b border-white/[0.06] bg-[#0D1220] px-4 py-3 sm:px-6 flex flex-wrap items-center justify-between gap-4">
-        {/* Scenario Switcher Tabs */}
+    <div className="w-full card-light-md overflow-hidden transition-colors duration-300">
+      {/* Top bar */}
+      <div className="border-b border-[#E5E7EB] dark:border-white/10 bg-[#FAFAFA] dark:bg-[#080C14] px-5 py-3 flex flex-wrap items-center justify-between gap-3 transition-colors duration-300">
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 mr-2">
-            <span className="h-3 w-3 rounded-full bg-red-500/80" />
-            <span className="h-3 w-3 rounded-full bg-yellow-500/80" />
-            <span className="h-3 w-3 rounded-full bg-green-500/80" />
+          {/* Traffic light dots */}
+          <div className="flex gap-1.5 mr-2">
+            <span className="h-3 w-3 rounded-full bg-[#FF5F57]" />
+            <span className="h-3 w-3 rounded-full bg-[#FEBC2E]" />
+            <span className="h-3 w-3 rounded-full bg-[#28C840]" />
           </div>
-          <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.06]">
+          <div className="flex items-center bg-white dark:bg-white/[0.04] p-1 rounded-lg border border-[#E5E7EB] dark:border-white/10 transition-colors duration-300">
             {SCENARIOS.map((s) => {
               const isActive = s.id === scenario.id;
               return (
                 <button
                   key={s.id}
-                  onClick={() => {
-                    setSelectedScenarioId(s.id);
-                  }}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                  onClick={() => setSelectedScenarioId(s.id)}
+                  className={`px-3 py-1.5 text-[12px] font-medium rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
                     isActive
-                      ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-                      : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04]"
+                      ? "bg-[#6D28D9] text-white shadow-sm"
+                      : "text-[#4B5563] dark:text-zinc-400 hover:text-[#0F0F0F] dark:hover:text-white hover:bg-[#F3F4F6] dark:hover:bg-white/[0.05]"
                   }`}
                 >
                   {s.category === "Security" && <ShieldAlert className="h-3 w-3" />}
@@ -209,37 +220,35 @@ export function ReviewSimulator() {
           </div>
         </div>
 
-        {/* Action Controls & Memory Count */}
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-400">
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/30 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
             <Brain className="h-3.5 w-3.5" />
             <span>Memory Bank: {memoryBank.length} Rules</span>
           </div>
-
           <Button
             size="sm"
             onClick={handleRunSimulation}
             disabled={isSimulating}
-            className="gap-1.5 text-xs font-semibold shadow-md shadow-indigo-500/20"
+            className="gap-1.5 text-[12px] font-semibold bg-[#6D28D9] hover:bg-[#5B21B6] text-white shadow-sm"
           >
             {isSimulating ? (
-              <Zap className="h-3.5 w-3.5 animate-spin text-indigo-300" />
+              <Zap className="h-3.5 w-3.5 animate-spin" />
             ) : (
-              <Play className="h-3.5 w-3.5 text-indigo-300" />
+              <Play className="h-3.5 w-3.5" />
             )}
             {isSimulating ? "Analyzing Diff..." : "Simulate Review"}
           </Button>
         </div>
       </div>
 
-      {/* Real-time LangGraph Step Progression Bar */}
+      {/* Step progress bar */}
       <AnimatePresence>
         {isSimulating && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="bg-indigo-950/40 border-b border-indigo-500/20 px-6 py-2.5 overflow-hidden"
+            className="bg-violet-50 dark:bg-violet-950/40 border-b border-violet-200 dark:border-violet-800/40 px-6 py-3 overflow-hidden"
           >
             <div className="flex items-center justify-between gap-4">
               {STEPS.map((step, idx) => {
@@ -250,26 +259,22 @@ export function ReviewSimulator() {
                     <div
                       className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
                         isPast
-                          ? "bg-emerald-500 text-black"
+                          ? "bg-emerald-500 text-white"
                           : isCurrent
-                          ? "bg-indigo-500 text-white animate-pulse"
-                          : "bg-white/10 text-zinc-500"
+                          ? "bg-[#6D28D9] text-white animate-pulse"
+                          : "bg-[#E5E7EB] dark:bg-white/10 text-[#9CA3AF] dark:text-zinc-500"
                       }`}
                     >
                       {isPast ? <Check className="h-3 w-3 stroke-[3]" /> : idx + 1}
                     </div>
                     <div className="hidden md:block">
-                      <p
-                        className={`text-xs font-medium leading-none ${
-                          isCurrent ? "text-white" : "text-zinc-400"
-                        }`}
-                      >
+                      <p className={`text-[11px] font-semibold leading-none ${isCurrent ? "text-[#6D28D9] dark:text-[#A78BFA]" : "text-[#9CA3AF] dark:text-zinc-400"}`}>
                         {step.label}
                       </p>
-                      <p className="text-[10px] text-zinc-500 leading-tight">{step.desc}</p>
+                      <p className="text-[10px] text-[#9CA3AF] dark:text-zinc-500">{step.desc}</p>
                     </div>
                     {idx < STEPS.length - 1 && (
-                      <div className="h-px w-6 bg-white/[0.08] hidden lg:block" />
+                      <div className="h-px w-4 bg-[#E5E7EB] dark:bg-white/10 hidden lg:block" />
                     )}
                   </div>
                 );
@@ -279,139 +284,117 @@ export function ReviewSimulator() {
         )}
       </AnimatePresence>
 
-      {/* Simulator Body: 2 Columns on desktop */}
-      <div className="grid lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-white/[0.06]">
-        {/* Left Side: Interactive Code Diff */}
+      {/* Body: split layout */}
+      <div className="grid lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-[#E5E7EB] dark:divide-white/10">
+        {/* Left: diff viewer */}
         <div className="lg:col-span-8 p-5 sm:p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Terminal className="h-4 w-4 text-zinc-400" />
-              <span className="font-mono text-xs text-zinc-300 font-semibold">{scenario.file}</span>
+              <Terminal className="h-4 w-4 text-[#9CA3AF] dark:text-zinc-500" />
+              <span className="font-mono text-[12px] text-[#0F0F0F] dark:text-white font-semibold">{scenario.file}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[11px] text-zinc-500 font-mono">git diff</span>
-              <span
-                className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
-                  scenario.riskScore > 70
-                    ? "bg-red-500/15 text-red-400 border border-red-500/30"
-                    : scenario.riskScore > 30
-                    ? "bg-amber-500/15 text-amber-400 border border-amber-500/30"
-                    : "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-                }`}
-              >
+              <span className="text-[11px] text-[#9CA3AF] dark:text-zinc-500 font-mono">git diff</span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase border ${riskStyle}`}>
                 Risk: {scenario.riskScore}/100
               </span>
             </div>
           </div>
 
-          {/* Diff Box */}
-          <div className="rounded-xl border border-white/[0.06] bg-[#050811] p-4 font-mono text-xs overflow-x-auto">
-            {scenario.diff.map((line, idx) => {
-              if (line.type === "remove") {
+          {/* Diff viewer */}
+          <div className="rounded-xl border border-[#E5E7EB] dark:border-white/10 overflow-hidden">
+            <div className="bg-[#1E1E2E] p-4 font-mono text-[12px] overflow-x-auto">
+              {scenario.diff.map((line, idx) => {
+                if (line.type === "remove") {
+                  return (
+                    <div key={idx} className="flex gap-3 bg-red-500/10 text-red-400 px-2 py-0.5 rounded border-l-2 border-red-500/50">
+                      <span className="w-7 text-right text-red-500/50 select-none">{line.numOld}</span>
+                      <span className="w-7 select-none" />
+                      <span className="flex-1">{line.code}</span>
+                    </div>
+                  );
+                }
+                if (line.type === "add") {
+                  return (
+                    <div key={idx} className="flex gap-3 bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border-l-2 border-emerald-500/50">
+                      <span className="w-7 select-none" />
+                      <span className="w-7 text-right text-emerald-500/50 select-none">{line.numNew}</span>
+                      <span className="flex-1">{line.code}</span>
+                    </div>
+                  );
+                }
                 return (
-                  <div
-                    key={idx}
-                    className="flex gap-3 bg-red-950/25 text-red-300 px-2 py-0.5 rounded border-l-2 border-red-500/60"
-                  >
-                    <span className="w-8 text-right text-red-500/70 select-none">{line.numOld}</span>
-                    <span className="w-8 select-none"></span>
+                  <div key={idx} className="flex gap-3 text-[#6B7280] px-2 py-0.5">
+                    <span className="w-7 text-right text-[#4B5563]/50 select-none">{line.numOld}</span>
+                    <span className="w-7 text-right text-[#4B5563]/50 select-none">{line.numNew}</span>
                     <span className="flex-1">{line.code}</span>
                   </div>
                 );
-              }
-              if (line.type === "add") {
-                return (
-                  <div
-                    key={idx}
-                    className="flex gap-3 bg-emerald-950/25 text-emerald-300 px-2 py-0.5 rounded border-l-2 border-emerald-500/60"
-                  >
-                    <span className="w-8 select-none"></span>
-                    <span className="w-8 text-right text-emerald-500/70 select-none">{line.numNew}</span>
-                    <span className="flex-1">{line.code}</span>
-                  </div>
-                );
-              }
-              return (
-                <div key={idx} className="flex gap-3 text-zinc-400 px-2 py-0.5">
-                  <span className="w-8 text-right text-zinc-600 select-none">{line.numOld}</span>
-                  <span className="w-8 text-right text-zinc-600 select-none">{line.numNew}</span>
-                  <span className="flex-1">{line.code}</span>
-                </div>
-              );
-            })}
+              })}
+            </div>
 
-            {/* Inline AI Comment Annotation */}
+            {/* Inline AI comment */}
             <AnimatePresence>
               {decision !== "dismissed" && (
                 <motion.div
-                  initial={{ opacity: 0, y: 8, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.25 }}
-                  className="mt-4 rounded-xl border border-indigo-500/30 bg-[#12172A] p-4 shadow-xl shadow-indigo-950/30 font-sans"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.22 }}
+                  className="border-t border-[#E5E7EB] dark:border-white/10 bg-white dark:bg-[#0D1322] p-4 font-sans transition-colors duration-300"
                 >
-                  <div className="flex items-start justify-between gap-3 mb-2.5">
+                  <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex items-center gap-2.5">
-                      <div className="h-6 w-6 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
-                        <Sparkles className="h-3.5 w-3.5" />
+                      <div className="h-7 w-7 rounded-xl bg-gradient-to-br from-[#6D28D9] to-[#0891B2] flex items-center justify-center shadow-sm shadow-violet-200 dark:shadow-violet-950/50">
+                        <Sparkles className="h-3.5 w-3.5 text-white" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-white tracking-tight">
+                          <span className="text-[13px] font-bold text-[#0F0F0F] dark:text-white tracking-tight">
                             Powerful Agent
                           </span>
-                          <span
-                            className={`text-[10px] font-bold px-1.5 py-0.2 rounded uppercase ${
-                              scenario.comment.severity === "CRITICAL"
-                                ? "bg-red-500/15 text-red-400 border border-red-500/30"
-                                : scenario.comment.severity === "HIGH"
-                                ? "bg-amber-500/15 text-amber-400 border border-amber-500/30"
-                                : "bg-indigo-500/15 text-indigo-400 border border-indigo-500/30"
-                            }`}
-                          >
+                          <span className={`text-[10px] font-bold px-1.5 py-px rounded uppercase border ${severityStyle}`}>
                             {scenario.comment.severity}
                           </span>
                         </div>
                       </div>
                     </div>
-                    <span className="text-[11px] font-mono text-zinc-400">
+                    <span className="text-[11px] font-mono text-[#9CA3AF] dark:text-zinc-500">
                       {scenario.comment.confidence}% confidence
                     </span>
                   </div>
 
-                  <h4 className="text-xs font-semibold text-white mb-1.5">
+                  <h4 className="text-[13px] font-semibold text-[#0F0F0F] dark:text-white mb-1.5">
                     {scenario.comment.title}
                   </h4>
-                  <p className="text-xs text-zinc-300 leading-relaxed mb-3">
+                  <p className="text-[12px] text-[#4B5563] dark:text-zinc-300 leading-relaxed mb-3">
                     {scenario.comment.description}
                   </p>
 
-                  <div className="rounded-lg bg-white/[0.03] border border-white/[0.06] p-2.5 text-xs text-zinc-300 font-mono mb-4">
-                    <span className="text-indigo-400 font-bold font-sans">Suggested fix: </span>
+                  <div className="rounded-lg bg-[#FAFAFA] dark:bg-black/30 border border-[#E5E7EB] dark:border-white/10 p-2.5 text-[12px] text-[#4B5563] dark:text-zinc-300 font-mono mb-4 transition-colors duration-300">
+                    <span className="text-[#6D28D9] dark:text-[#A78BFA] font-bold font-sans">Suggested fix: </span>
                     {scenario.comment.suggestedFix}
                   </div>
 
-                  {/* Feedback Controls */}
-                  <div className="flex items-center justify-between pt-2 border-t border-white/[0.06]">
-                    <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
-                      <Code2 className="h-3.5 w-3.5 text-indigo-400" />
+                  <div className="flex items-center justify-between pt-3 border-t border-[#E5E7EB] dark:border-white/10">
+                    <div className="flex items-center gap-1.5 text-[11px] text-[#4B5563] dark:text-zinc-400">
+                      <Code2 className="h-3.5 w-3.5 text-[#6D28D9] dark:text-[#A78BFA]" />
                       <span>Rule will sync to shared team memory bank</span>
                     </div>
-
                     <div className="flex items-center gap-2">
                       {decision === "approved" ? (
                         <div className="flex items-center gap-2">
                           <motion.span
                             initial={{ scale: 0.9 }}
                             animate={{ scale: 1 }}
-                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-3 py-1 rounded-lg"
+                            className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/30 px-3 py-1 rounded-lg"
                           >
                             <Check className="h-3.5 w-3.5 stroke-[2.5]" />
                             Rule Learned Forever
                           </motion.span>
                           <button
                             onClick={handleReset}
-                            className="p-1 text-zinc-500 hover:text-zinc-300 rounded transition-colors"
+                            className="p-1 text-[#9CA3AF] hover:text-[#0F0F0F] dark:hover:text-white rounded transition-colors"
                             title="Reset"
                           >
                             <RotateCcw className="h-3.5 w-3.5" />
@@ -421,15 +404,15 @@ export function ReviewSimulator() {
                         <>
                           <button
                             onClick={handleDismiss}
-                            className="text-xs text-zinc-400 hover:text-white px-2.5 py-1.5 rounded-lg hover:bg-white/[0.05] transition-colors cursor-pointer"
+                            className="text-[12px] text-[#4B5563] dark:text-zinc-400 hover:text-[#0F0F0F] dark:hover:text-white px-2.5 py-1.5 rounded-lg hover:bg-[#F3F4F6] dark:hover:bg-white/10 transition-colors cursor-pointer"
                           >
                             Dismiss
                           </button>
                           <button
                             onClick={handleApprove}
-                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 px-3.5 py-1.5 rounded-lg transition-all shadow-md shadow-indigo-600/30 hover:scale-[1.02] cursor-pointer"
+                            className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-white bg-[#6D28D9] hover:bg-[#5B21B6] px-3.5 py-1.5 rounded-lg transition-all shadow-sm shadow-violet-200 dark:shadow-violet-950/50 hover:scale-[1.02] cursor-pointer"
                           >
-                            <Brain className="h-3.5 w-3.5 text-indigo-200" />
+                            <Brain className="h-3.5 w-3.5 text-violet-200" />
                             Approve & Save Rule
                           </button>
                         </>
@@ -444,12 +427,12 @@ export function ReviewSimulator() {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="mt-4 rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 text-center"
+                className="border-t border-[#E5E7EB] dark:border-white/10 bg-white dark:bg-[#0D1322] p-4 text-center transition-colors duration-300"
               >
-                <p className="text-xs text-zinc-400 mb-2">
+                <p className="text-[12px] text-[#4B5563] dark:text-zinc-400 mb-2">
                   Feedback dismissed. The agent noted this preference to reduce false positives for this pattern.
                 </p>
-                <Button size="sm" variant="secondary" onClick={handleReset} className="text-xs h-7">
+                <Button size="sm" variant="secondary" onClick={handleReset} className="text-[12px] h-7 bg-[#F3F4F6] dark:bg-white/10 hover:bg-[#E5E7EB] dark:hover:bg-white/20 text-[#0F0F0F] dark:text-white">
                   Restore Suggestion
                 </Button>
               </motion.div>
@@ -457,47 +440,47 @@ export function ReviewSimulator() {
           </div>
         </div>
 
-        {/* Right Side: Live Memory Bank Feed */}
-        <div className="lg:col-span-4 p-5 sm:p-6 bg-[#0B0F1B]/60 space-y-4">
+        {/* Right: live memory bank */}
+        <div className="lg:col-span-4 p-5 sm:p-6 bg-[#FAFAFA] dark:bg-[#080C14] space-y-4 transition-colors duration-300">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Brain className="h-4 w-4 text-indigo-400" />
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+              <Brain className="h-4 w-4 text-[#6D28D9] dark:text-[#A78BFA]" />
+              <h3 className="text-[12px] font-bold text-[#0F0F0F] dark:text-white uppercase tracking-wider">
                 Live Memory Bank
               </h3>
             </div>
-            <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
+            <span className="text-[10px] font-mono text-[#0891B2] dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-800/40 px-2 py-0.5 rounded">
               pgvector RAG
             </span>
           </div>
 
-          <p className="text-xs text-zinc-400 leading-relaxed">
+          <p className="text-[12px] text-[#4B5563] dark:text-zinc-400 leading-relaxed">
             Every approved feedback loop writes vector embeddings to PostgreSQL. When future PRs touch similar AST structures, the agent injects these exact rules.
           </p>
 
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {memoryBank.map((rule, idx) => {
               const isJustAdded = idx === 0 && decision === "approved";
               return (
                 <motion.div
                   key={idx}
                   layout
-                  initial={isJustAdded ? { scale: 0.95, opacity: 0, y: -10 } : false}
+                  initial={isJustAdded ? { scale: 0.96, opacity: 0, y: -8 } : false}
                   animate={{ scale: 1, opacity: 1, y: 0 }}
-                  className={`p-3 rounded-xl border text-xs leading-relaxed transition-all ${
+                  className={`p-3 rounded-xl border text-[12px] leading-relaxed transition-all duration-300 ${
                     isJustAdded
-                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-200 shadow-lg shadow-emerald-500/10"
-                      : "bg-white/[0.02] border-white/[0.06] text-zinc-300"
+                      ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/30 text-emerald-800 dark:text-emerald-300 shadow-sm"
+                      : "bg-white dark:bg-[#0D1322] border-[#E5E7EB] dark:border-white/10 text-[#4B5563] dark:text-zinc-300"
                   }`}
                 >
                   <div className="flex items-start gap-2">
-                    <span className="text-[10px] font-mono text-zinc-500 mt-0.5 shrink-0">
+                    <span className="text-[10px] font-mono text-[#9CA3AF] dark:text-zinc-500 mt-0.5 shrink-0">
                       #{String(idx + 1).padStart(2, "0")}
                     </span>
                     <p className="flex-1">{rule}</p>
                   </div>
                   {isJustAdded && (
-                    <div className="mt-2 pt-2 border-t border-emerald-500/20 flex items-center justify-between text-[10px] text-emerald-400 font-semibold">
+                    <div className="mt-2 pt-2 border-t border-emerald-200 dark:border-emerald-800/30 flex items-center justify-between text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
                       <span>Learned from current review</span>
                       <span className="font-mono">embed: 1536 dims</span>
                     </div>
@@ -507,9 +490,9 @@ export function ReviewSimulator() {
             })}
           </div>
 
-          <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs text-zinc-500">
+          <div className="pt-3 border-t border-[#E5E7EB] dark:border-white/10 flex items-center justify-between text-[12px] text-[#9CA3AF] dark:text-zinc-500">
             <span className="flex items-center gap-1.5">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
               Shared with whole team
             </span>
             <span className="font-mono text-[10px]">v2.0 pgvector</span>

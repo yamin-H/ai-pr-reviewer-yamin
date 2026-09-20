@@ -59,16 +59,16 @@ export default function OverviewPage() {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center glass-card max-w-lg mx-auto mt-12 p-8 border border-red-500/10 bg-red-500/5">
+      <div className="flex flex-col items-center justify-center py-20 text-center glass-card max-w-lg mx-auto mt-12 p-8 border border-red-500/20 bg-red-500/5">
         <AlertTriangle className="h-10 w-10 text-red-400 mb-4" />
-        <h3 className="text-lg font-bold text-white mb-2">Error Loading Dashboard</h3>
-        <p className="text-sm text-zinc-400 mb-6">{error}</p>
+        <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-2">Error Loading Dashboard</h3>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">{error}</p>
         <button
           onClick={() => {
             setLoading(true);
             fetchData();
           }}
-          className="text-xs font-semibold bg-white/5 border border-white/10 hover:bg-white/10 text-white px-4 py-2 rounded-xl transition-colors cursor-pointer"
+          className="text-xs font-semibold bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-900 dark:text-white px-4 py-2 rounded-xl transition-colors cursor-pointer"
         >
           Retry Connection
         </button>
@@ -85,32 +85,32 @@ export default function OverviewPage() {
   return (
     <div className="space-y-8">
       {/* Executive Hero Banner */}
-      <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-r from-indigo-950/40 via-purple-950/20 to-slate-900/40 p-6 md:p-8 backdrop-blur-xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+      <div className="relative overflow-hidden rounded-2xl border border-indigo-100 dark:border-white/[0.08] bg-gradient-to-r from-indigo-50/90 via-purple-50/50 to-slate-50/80 dark:from-indigo-950/40 dark:via-purple-950/20 dark:to-slate-900/40 p-6 md:p-8 backdrop-blur-xl shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] transition-colors duration-300">
         <div className="absolute right-0 top-0 -mt-12 -mr-12 h-64 w-64 rounded-full bg-gradient-to-br from-indigo-500/10 to-violet-500/0 blur-3xl pointer-events-none" />
         
         <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="space-y-2 max-w-xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-300">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50 dark:bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Autonomous Review Engine Active
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
               Engineering Workspace
             </h1>
-            <p className="text-sm text-zinc-400">
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
               Real-time code audit pipeline with continuous team convention learning.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
             <a href="/dashboard/pipeline">
-              <button className="flex items-center gap-2 rounded-xl bg-white/[0.06] border border-white/[0.1] px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/[0.1] transition-all cursor-pointer">
-                <Brain className="h-4 w-4 text-indigo-400" />
+              <button className="flex items-center gap-2 rounded-xl bg-white dark:bg-white/[0.06] border border-zinc-200 dark:border-white/[0.1] px-4 py-2.5 text-xs font-semibold text-zinc-800 dark:text-white hover:bg-zinc-50 dark:hover:bg-white/[0.1] transition-all cursor-pointer shadow-xs">
+                <Brain className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                 Live Pipeline
               </button>
             </a>
             <a href="/dashboard/repos">
-              <button className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-4 py-2.5 text-xs font-semibold text-white shadow-lg shadow-indigo-500/25 hover:brightness-110 transition-all cursor-pointer">
+              <button className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2.5 text-xs font-semibold text-white shadow-md shadow-indigo-500/25 hover:brightness-110 transition-all cursor-pointer">
                 <FolderGit2 className="h-4 w-4" />
                 Manage Repos
               </button>

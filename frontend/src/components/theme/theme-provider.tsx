@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Sun, Moon } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 type Theme = "dark" | "light";
 
@@ -13,13 +13,13 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: "dark",
+  theme: "light",
   toggleTheme: () => {},
   setTheme: () => {},
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("dark");
+  const [theme, setThemeState] = useState<Theme>("light");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setThemeState(saved);
       applyTheme(saved);
     } else {
-      applyTheme("dark");
+      applyTheme("light");
     }
   }, []);
 
@@ -47,9 +47,27 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
-    localStorage.setItem("powerful_theme", newTheme);
-    applyTheme(newTheme);
+    const root = document.documentElement;
+    root.classList.add("theme-transitioning");
+
+    const commit = () => {
+      setThemeState(newTheme);
+      localStorage.setItem("powerful_theme", newTheme);
+      applyTheme(newTheme);
+    };
+
+    if (typeof document !== "undefined" && "startViewTransition" in document) {
+      // @ts-expect-error View Transitions API
+      document.startViewTransition(() => {
+        commit();
+      });
+    } else {
+      commit();
+    }
+
+    setTimeout(() => {
+      root.classList.remove("theme-transitioning");
+    }, 400);
   };
 
   const toggleTheme = () => {
@@ -77,26 +95,28 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
       onClick={toggleTheme}
       aria-label={`Switch to ${isLight ? "dark" : "light"} mode`}
       title={`Switch to ${isLight ? "dark" : "light"} mode`}
-      className={`relative inline-flex items-center justify-center h-9 w-9 rounded-xl border transition-all cursor-pointer ${
+      className={`relative inline-flex items-center justify-center h-9 w-9 rounded-xl border transition-all duration-300 cursor-pointer overflow-hidden group ${
         isLight
-          ? "bg-white border-zinc-300 text-amber-500 shadow-sm hover:bg-zinc-100 hover:border-zinc-400"
-          : "bg-white/[0.04] border-white/[0.08] text-indigo-300 hover:bg-white/[0.08] hover:border-white/[0.16] hover:text-white"
+          ? "bg-white border-zinc-200 text-amber-500 shadow-sm hover:bg-zinc-50 hover:border-zinc-300 hover:shadow"
+          : "bg-[#0D1322] border-white/10 text-indigo-300 shadow-sm hover:bg-white/[0.08] hover:border-white/20 hover:text-white"
       } ${className}`}
     >
-      <motion.div
-        key={theme}
-        initial={{ rotate: -45, scale: 0.8, opacity: 0 }}
-        animate={{ rotate: 0, scale: 1, opacity: 1 }}
-        exit={{ rotate: 45, scale: 0.8, opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        className="flex items-center justify-center"
-      >
-        {isLight ? (
-          <Sun className="h-4.5 w-4.5 text-amber-500 fill-amber-500/20" />
-        ) : (
-          <Moon className="h-4.5 w-4.5 text-indigo-300 fill-indigo-300/20" />
-        )}
-      </motion.div>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={theme}
+          initial={{ y: -14, opacity: 0, rotate: -70, scale: 0.65 }}
+          animate={{ y: 0, opacity: 1, rotate: 0, scale: 1 }}
+          exit={{ y: 14, opacity: 0, rotate: 70, scale: 0.65 }}
+          transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+          className="flex items-center justify-center"
+        >
+          {isLight ? (
+            <Sun className="h-4.5 w-4.5 text-amber-500 fill-amber-500/20 group-hover:rotate-45 transition-transform duration-300" />
+          ) : (
+            <Moon className="h-4.5 w-4.5 text-indigo-300 fill-indigo-300/20 group-hover:-rotate-12 transition-transform duration-300" />
+          )}
+        </motion.div>
+      </AnimatePresence>
     </button>
   );
 }

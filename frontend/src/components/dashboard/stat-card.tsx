@@ -34,7 +34,7 @@ export function StatCard({
   return (
     <Card
       className={cn(
-        "group relative overflow-hidden p-6 transition-all duration-300 hover:border-white/[0.14] hover:bg-white/[0.04] hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-8px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.1)]",
+        "group relative overflow-hidden p-6 transition-all duration-300 hover:border-zinc-300 dark:hover:border-white/[0.14] hover:bg-zinc-50/50 dark:hover:bg-white/[0.04] hover:-translate-y-0.5 hover:shadow-md dark:hover:shadow-[0_12px_28px_-8px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.1)]",
         className,
       )}
     >
@@ -47,23 +47,23 @@ export function StatCard({
       <div className="relative flex items-start justify-between">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">{title}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{title}</p>
             {trend && (
-              <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 border border-emerald-500/20">
+              <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                 {trend}
               </span>
             )}
           </div>
-          <p className="text-3xl font-extrabold tracking-tight text-white font-sans">
+          <p className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white font-sans">
             {value}
           </p>
           {subtitle && (
-            <p className="text-xs text-zinc-400 font-medium">{subtitle}</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{subtitle}</p>
           )}
         </div>
         <div
           className={cn(
-            "flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br shadow-md border border-white/[0.08] transition-transform duration-200 group-hover:scale-105",
+            "flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br shadow-md border border-zinc-200 dark:border-white/[0.08] transition-transform duration-200 group-hover:scale-105",
             accentStyles[accent],
           )}
         >

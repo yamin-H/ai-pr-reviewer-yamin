@@ -20,6 +20,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme/theme-provider";
 import { getLoginUrl, api } from "@/lib/api";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -123,12 +124,12 @@ function InstallPageContent() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#05070C] text-zinc-100 overflow-hidden font-sans flex flex-col">
+    <div className="relative min-h-screen bg-[#FAFAFA] dark:bg-[#080C14] text-[#0F0F0F] dark:text-zinc-100 overflow-hidden font-sans flex flex-col transition-colors duration-300">
       {/* Ambient particles */}
       {particles.map((p) => (
         <motion.div
           key={p.id}
-          className="absolute rounded-full bg-indigo-500/20 pointer-events-none"
+          className="absolute rounded-full bg-indigo-500/20 dark:bg-indigo-500/20 pointer-events-none"
           style={{
             left: `${p.x}%`,
             top: `${p.y}%`,
@@ -149,20 +150,23 @@ function InstallPageContent() {
       ))}
 
       {/* Background glows */}
-      <div className="absolute top-[-15%] left-[-15%] w-[70%] h-[60%] rounded-full bg-gradient-to-br from-indigo-600/8 to-transparent blur-3xl pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[50%] rounded-full bg-gradient-to-br from-violet-600/8 to-transparent blur-3xl pointer-events-none" />
+      <div className="absolute top-[-15%] left-[-15%] w-[70%] h-[60%] rounded-full bg-gradient-to-br from-indigo-500/5 dark:from-indigo-600/8 to-transparent blur-3xl pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[50%] rounded-full bg-gradient-to-br from-violet-500/5 dark:from-violet-600/8 to-transparent blur-3xl pointer-events-none" />
 
       {/* Header */}
-      <header className="relative z-10 flex items-center justify-between px-8 h-16 border-b border-white/[0.05]">
+      <header className="relative z-10 flex items-center justify-between px-8 h-16 border-b border-zinc-200/80 dark:border-white/[0.05] bg-white/80 dark:bg-[#080C14]/80 backdrop-blur-xl transition-colors duration-300">
         <Link href="/" className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/20">
             <Sparkles className="h-5 w-5 text-white" />
           </div>
-          <span className="font-bold text-white text-sm">Powerful</span>
+          <span className="font-bold text-zinc-900 dark:text-white text-sm">Powerful</span>
         </Link>
-        <Link href="/" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
-          ← Back to home
-        </Link>
+        <div className="flex items-center gap-4">
+          <ThemeToggle />
+          <Link href="/" className="text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300 transition-colors">
+            ← Back to home
+          </Link>
+        </div>
       </header>
 
       {/* Main Content */}
@@ -174,7 +178,7 @@ function InstallPageContent() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-4 py-1.5 text-xs font-medium text-indigo-300"
+              className="inline-flex items-center gap-2 rounded-full border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50 dark:bg-indigo-500/10 px-4 py-1.5 text-xs font-medium text-indigo-700 dark:text-indigo-300"
             >
               <GitBranch className="h-3.5 w-3.5" />
               GitHub App Setup
@@ -183,7 +187,7 @@ function InstallPageContent() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 }}
-              className="text-3xl font-extrabold tracking-tight text-white"
+              className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white"
             >
               Connect Powerful to GitHub
             </motion.h1>
@@ -191,7 +195,7 @@ function InstallPageContent() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.1 }}
-              className="text-sm text-zinc-400 max-w-md mx-auto leading-relaxed"
+              className="text-sm text-zinc-600 dark:text-zinc-400 max-w-md mx-auto leading-relaxed"
             >
               Install the Powerful GitHub App on your repositories so the AI agent can automatically review every Pull Request.
             </motion.p>
@@ -217,10 +221,10 @@ function InstallPageContent() {
                       }}
                       className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-300 ${
                         isDone
-                          ? "border-emerald-500 bg-emerald-500/20 text-emerald-400"
+                          ? "border-emerald-500 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
                           : isActive
-                          ? "border-indigo-500 bg-indigo-500/20 text-indigo-400 shadow-lg shadow-indigo-500/20"
-                          : "border-white/10 bg-white/[0.03] text-zinc-600"
+                          ? "border-indigo-500 bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 shadow-lg shadow-indigo-500/20"
+                          : "border-zinc-300 dark:border-white/10 bg-zinc-100 dark:bg-white/[0.03] text-zinc-400 dark:text-zinc-600"
                       }`}
                     >
                       {isDone ? (
@@ -229,12 +233,12 @@ function InstallPageContent() {
                         <Icon className="h-4.5 w-4.5" />
                       )}
                     </motion.div>
-                    <span className={`text-[11px] font-medium ${isActive ? "text-white" : isDone ? "text-emerald-400" : "text-zinc-600"}`}>
+                    <span className={`text-[11px] font-medium ${isActive ? "text-zinc-900 dark:text-white" : isDone ? "text-emerald-600 dark:text-emerald-400" : "text-zinc-400 dark:text-zinc-600"}`}>
                       {s.label}
                     </span>
                   </div>
                   {i < steps.length - 1 && (
-                    <div className={`w-24 h-px mx-2 mb-5 transition-all duration-500 ${step > i ? "bg-emerald-500/50" : "bg-white/[0.06]"}`} />
+                    <div className={`w-24 h-px mx-2 mb-5 transition-all duration-500 ${step > i ? "bg-emerald-500/50" : "bg-zinc-200 dark:bg-white/[0.06]"}`} />
                   )}
                 </div>
               );
@@ -252,15 +256,15 @@ function InstallPageContent() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
-                className="border border-white/[0.08] bg-[#0B0F1A]/80 backdrop-blur-xl rounded-2xl p-8 space-y-6"
+                className="border border-zinc-200/80 dark:border-white/[0.08] bg-white/95 dark:bg-[#0B0F1A]/80 backdrop-blur-xl rounded-2xl p-8 space-y-6 shadow-sm dark:shadow-2xl"
               >
                 <div className="flex items-start gap-4">
-                  <div className="h-10 w-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 shrink-0 mt-0.5">
+                  <div className="h-10 w-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5">
                     <GitBranch className="h-5 w-5" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-white">Step 1: Sign in with GitHub</h2>
-                    <p className="text-sm text-zinc-400 mt-1 leading-relaxed">
+                    <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Step 1: Sign in with GitHub</h2>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1 leading-relaxed">
                       First, authenticate your GitHub account so we know who you are. This only grants read access to your profile.
                     </p>
                   </div>
@@ -268,13 +272,13 @@ function InstallPageContent() {
 
                 <div className="grid grid-cols-3 gap-3">
                   {[
-                    { icon: Shield, label: "Read-only profile access", color: "text-indigo-400" },
-                    { icon: Terminal, label: "No repo write access yet", color: "text-violet-400" },
-                    { icon: BookOpen, label: "Secure OAuth 2.0 flow", color: "text-emerald-400" },
+                    { icon: Shield, label: "Read-only profile access", color: "text-indigo-600 dark:text-indigo-400" },
+                    { icon: Terminal, label: "No repo write access yet", color: "text-violet-600 dark:text-violet-400" },
+                    { icon: BookOpen, label: "Secure OAuth 2.0 flow", color: "text-emerald-600 dark:text-emerald-400" },
                   ].map((item) => (
-                    <div key={item.label} className="rounded-xl bg-white/[0.03] border border-white/[0.05] p-3 text-center space-y-2">
+                    <div key={item.label} className="rounded-xl bg-zinc-50 dark:bg-white/[0.03] border border-zinc-200/60 dark:border-white/[0.05] p-3 text-center space-y-2">
                       <item.icon className={`h-4 w-4 mx-auto ${item.color}`} />
-                      <p className="text-[11px] text-zinc-400 leading-snug">{item.label}</p>
+                      <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-snug">{item.label}</p>
                     </div>
                   ))}
                 </div>
@@ -290,14 +294,14 @@ function InstallPageContent() {
                   </a>
                   <button
                     onClick={() => setStep(1)}
-                    className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-5 py-3 text-sm text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-all"
+                    className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-zinc-100 dark:bg-white/[0.03] px-5 py-3 text-sm text-zinc-700 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/[0.06] transition-all"
                   >
                     Already signed in? Skip →
                   </button>
                 </div>
 
                 {error && (
-                  <div className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+                  <div className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-600 dark:text-red-400">
                     <AlertCircle className="h-4 w-4 shrink-0" />
                     {error === "auth_failed" ? "Authentication failed. Please try again." : error}
                   </div>
@@ -313,23 +317,23 @@ function InstallPageContent() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
-                className="border border-white/[0.08] bg-[#0B0F1A]/80 backdrop-blur-xl rounded-2xl p-8 space-y-6"
+                className="border border-zinc-200/80 dark:border-white/[0.08] bg-white/95 dark:bg-[#0B0F1A]/80 backdrop-blur-xl rounded-2xl p-8 space-y-6 shadow-sm dark:shadow-2xl"
               >
                 <div className="flex items-start gap-4">
-                  <div className="h-10 w-10 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-400 shrink-0 mt-0.5">
+                  <div className="h-10 w-10 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-600 dark:text-violet-400 shrink-0 mt-0.5">
                     <Zap className="h-5 w-5" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-white">Step 2: Install the GitHub App</h2>
-                    <p className="text-sm text-zinc-400 mt-1 leading-relaxed">
+                    <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Step 2: Install the GitHub App</h2>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1 leading-relaxed">
                       Install the Powerful GitHub App on your account or organization. Choose which repositories it can access.
                     </p>
                   </div>
                 </div>
 
                 {/* What happens after install */}
-                <div className="rounded-xl bg-violet-500/5 border border-violet-500/20 p-5 space-y-3">
-                  <p className="text-xs font-semibold text-violet-300 uppercase tracking-wider">What happens after install</p>
+                <div className="rounded-xl bg-violet-50/70 dark:bg-violet-500/5 border border-violet-200 dark:border-violet-500/20 p-5 space-y-3">
+                  <p className="text-xs font-semibold text-violet-700 dark:text-violet-300 uppercase tracking-wider">What happens after install</p>
                   <div className="space-y-2.5">
                     {[
                       { icon: GitPullRequest, text: "GitHub sends webhooks to Powerful on every PR event" },
@@ -338,19 +342,19 @@ function InstallPageContent() {
                     ].map((item, i) => (
                       <div key={i} className="flex items-center gap-3">
                         <div className="h-6 w-6 rounded-lg bg-violet-500/10 flex items-center justify-center shrink-0">
-                          <item.icon className="h-3.5 w-3.5 text-violet-400" />
+                          <item.icon className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
                         </div>
-                        <span className="text-xs text-zinc-300">{item.text}</span>
+                        <span className="text-xs text-zinc-700 dark:text-zinc-300">{item.text}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {login && (
-                  <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] px-4 py-3 flex items-center gap-2 text-sm">
-                    <GitBranch className="h-4 w-4 text-zinc-400" />
-                    <span className="text-zinc-400">Installing for:</span>
-                    <span className="font-semibold text-white">@{login}</span>
+                  <div className="rounded-xl bg-zinc-50 dark:bg-white/[0.03] border border-zinc-200 dark:border-white/[0.06] px-4 py-3 flex items-center gap-2 text-sm">
+                    <GitBranch className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+                    <span className="text-zinc-600 dark:text-zinc-400">Installing for:</span>
+                    <span className="font-semibold text-zinc-900 dark:text-white">@{login}</span>
                   </div>
                 )}
 
@@ -365,7 +369,7 @@ function InstallPageContent() {
                   </button>
                   <button
                     onClick={() => setStep(0)}
-                    className="flex items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-5 py-3 text-sm text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-all"
+                    className="flex items-center justify-center gap-2 rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-zinc-100 dark:bg-white/[0.03] px-5 py-3 text-sm text-zinc-700 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/[0.06] transition-all"
                   >
                     ← Back
                   </button>
@@ -381,7 +385,7 @@ function InstallPageContent() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.4 }}
-                className="border border-emerald-500/20 bg-[#0B0F1A]/80 backdrop-blur-xl rounded-2xl p-8 space-y-6"
+                className="border border-emerald-500/30 dark:border-emerald-500/20 bg-white/95 dark:bg-[#0B0F1A]/80 backdrop-blur-xl rounded-2xl p-8 space-y-6 shadow-sm dark:shadow-2xl"
               >
                 {/* Success badge */}
                 <div className="flex flex-col items-center text-center gap-4">
@@ -391,29 +395,29 @@ function InstallPageContent() {
                     transition={{ type: "spring", stiffness: 200, damping: 15 }}
                     className="h-16 w-16 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center"
                   >
-                    <CheckCircle2 className="h-8 w-8 text-emerald-400" />
+                    <CheckCircle2 className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
                   </motion.div>
                   <div>
-                    <h2 className="text-xl font-bold text-white">
+                    <h2 className="text-xl font-bold text-zinc-900 dark:text-white">
                       {login ? `@${login} is connected!` : "App Installed!"}
                     </h2>
-                    <p className="text-sm text-zinc-400 mt-1 leading-relaxed">
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1 leading-relaxed">
                       Powerful is now installed. The agent is seeding your Memory Bank with historical PR data in the background.
                     </p>
                   </div>
                 </div>
 
                 {/* What's happening now */}
-                <div className="rounded-xl bg-[#0A0E18] border border-white/[0.05] p-5 space-y-3">
+                <div className="rounded-xl bg-zinc-100 dark:bg-[#0A0E18] border border-zinc-200 dark:border-white/[0.05] p-5 space-y-3">
                   <p className="text-[11px] font-mono text-zinc-500">agent • onboarding pipeline</p>
                   <div className="space-y-2">
                     {[
-                      { label: "fetch_historical_prs", status: onboardStatus === "running" ? "running" : "completed", color: onboardStatus === "running" ? "text-amber-400" : "text-emerald-400", bg: onboardStatus === "running" ? "bg-amber-500" : "bg-emerald-500" },
-                      { label: "embed_and_store", status: memCount > 0 ? "completed" : (onboardStatus === "running" ? "queued" : "completed"), color: memCount > 0 ? "text-emerald-400" : "text-zinc-500", bg: memCount > 0 ? "bg-emerald-500" : "bg-zinc-600" },
+                      { label: "fetch_historical_prs", status: onboardStatus === "running" ? "running" : "completed", color: onboardStatus === "running" ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400", bg: onboardStatus === "running" ? "bg-amber-500" : "bg-emerald-500" },
+                      { label: "embed_and_store", status: memCount > 0 ? "completed" : (onboardStatus === "running" ? "queued" : "completed"), color: memCount > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-zinc-500", bg: memCount > 0 ? "bg-emerald-500" : "bg-zinc-600" },
                     ].map((node) => (
                       <div key={node.label} className="flex items-center gap-3">
                         <div className={`h-1.5 w-1.5 rounded-full ${node.bg} ${node.status === "running" ? "animate-pulse" : ""}`} />
-                        <span className="font-mono text-xs text-zinc-300">{node.label}</span>
+                        <span className="font-mono text-xs text-zinc-800 dark:text-zinc-300">{node.label}</span>
                         <span className={`ml-auto text-[10px] font-medium ${node.color}`}>{node.status === "completed" ? (node.label === "embed_and_store" ? `completed (${memCount} entries)` : "completed") : node.status}</span>
                       </div>
                     ))}
@@ -421,7 +425,7 @@ function InstallPageContent() {
                 </div>
 
                 {checkError && (
-                  <div className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+                  <div className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-600 dark:text-red-400">
                     <AlertCircle className="h-4 w-4 shrink-0" />
                     {checkError}
                   </div>
@@ -453,29 +457,29 @@ function InstallPageContent() {
                 icon: GitPullRequest,
                 title: "PR Opened",
                 desc: "GitHub sends a webhook event to Powerful",
-                color: "text-indigo-400",
+                color: "text-indigo-600 dark:text-indigo-400",
                 bg: "bg-indigo-500/10",
               },
               {
                 icon: Brain,
                 title: "Memory Search",
                 desc: "Agent finds similar past decisions via pgvector",
-                color: "text-violet-400",
+                color: "text-violet-600 dark:text-violet-400",
                 bg: "bg-violet-500/10",
               },
               {
                 icon: Sparkles,
                 title: "Smart Comment",
                 desc: "LLM posts inline review with team context",
-                color: "text-emerald-400",
+                color: "text-emerald-600 dark:text-emerald-400",
                 bg: "bg-emerald-500/10",
               },
             ].map((item, i) => (
-              <div key={i} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-center space-y-2">
+              <div key={i} className="rounded-xl border border-zinc-200/80 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4 text-center space-y-2 shadow-xs dark:shadow-none">
                 <div className={`h-8 w-8 rounded-lg ${item.bg} flex items-center justify-center mx-auto`}>
                   <item.icon className={`h-4 w-4 ${item.color}`} />
                 </div>
-                <p className="text-sm font-semibold text-white">{item.title}</p>
+                <p className="text-sm font-semibold text-zinc-900 dark:text-white">{item.title}</p>
                 <p className="text-[11px] text-zinc-500 leading-snug">{item.desc}</p>
               </div>
             ))}
@@ -489,7 +493,7 @@ function InstallPageContent() {
 export default function InstallPage() {
   return (
     <Suspense fallback={
-      <div className="flex h-screen items-center justify-center bg-[#05070C]">
+      <div className="flex h-screen items-center justify-center bg-[#FAFAFA] dark:bg-[#05070C]">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
       </div>
     }>

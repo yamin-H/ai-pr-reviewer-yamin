@@ -194,19 +194,19 @@ async def notify_complete(state: ReviewState):
 const AGENT_NODE_IDS = ["fetch_pr", "chunk_changes", "search_memory", "llm_review", "post_comments", "notify_complete"];
 
 const phaseColors = {
-  trigger: { border: "border-indigo-500/30", glow: "shadow-indigo-500/10", badge: "bg-indigo-500/10 text-indigo-300 border-indigo-500/20" },
-  orchestration: { border: "border-amber-500/30", glow: "shadow-amber-500/10", badge: "bg-amber-500/10 text-amber-300 border-amber-500/20" },
-  agent: { border: "border-violet-500/20", glow: "shadow-violet-500/10", badge: "bg-violet-500/10 text-violet-300 border-violet-500/20" },
+  trigger: { border: "border-indigo-500/30", glow: "shadow-indigo-500/10", badge: "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-500/20" },
+  orchestration: { border: "border-amber-500/30", glow: "shadow-amber-500/10", badge: "bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-500/20" },
+  agent: { border: "border-violet-500/20", glow: "shadow-violet-500/10", badge: "bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-500/20" },
 };
 
 const nodeColors: Record<string, { icon: string; ring: string; glow: string }> = {
-  indigo: { icon: "text-indigo-400", ring: "border-indigo-500/40 bg-indigo-500/10", glow: "shadow-indigo-500/20" },
-  amber: { icon: "text-amber-400", ring: "border-amber-500/40 bg-amber-500/10", glow: "shadow-amber-500/20" },
-  sky: { icon: "text-sky-400", ring: "border-sky-500/40 bg-sky-500/10", glow: "shadow-sky-500/20" },
-  violet: { icon: "text-violet-400", ring: "border-violet-500/40 bg-violet-500/10", glow: "shadow-violet-500/20" },
-  emerald: { icon: "text-emerald-400", ring: "border-emerald-500/40 bg-emerald-500/10", glow: "shadow-emerald-500/20" },
-  teal: { icon: "text-teal-400", ring: "border-teal-500/40 bg-teal-500/10", glow: "shadow-teal-500/20" },
-  rose: { icon: "text-rose-400", ring: "border-rose-500/40 bg-rose-500/10", glow: "shadow-rose-500/20" },
+  indigo: { icon: "text-indigo-600 dark:text-indigo-400", ring: "border-indigo-500/30 dark:border-indigo-500/40 bg-indigo-500/10", glow: "shadow-indigo-500/20" },
+  amber: { icon: "text-amber-600 dark:text-amber-400", ring: "border-amber-500/30 dark:border-amber-500/40 bg-amber-500/10", glow: "shadow-amber-500/20" },
+  sky: { icon: "text-sky-600 dark:text-sky-400", ring: "border-sky-500/30 dark:border-sky-500/40 bg-sky-500/10", glow: "shadow-sky-500/20" },
+  violet: { icon: "text-violet-600 dark:text-violet-400", ring: "border-violet-500/30 dark:border-violet-500/40 bg-violet-500/10", glow: "shadow-violet-500/20" },
+  emerald: { icon: "text-emerald-600 dark:text-emerald-400", ring: "border-emerald-500/30 dark:border-emerald-500/40 bg-emerald-500/10", glow: "shadow-emerald-500/20" },
+  teal: { icon: "text-teal-600 dark:text-teal-400", ring: "border-teal-500/30 dark:border-teal-500/40 bg-teal-500/10", glow: "shadow-teal-500/20" },
+  rose: { icon: "text-rose-600 dark:text-rose-400", ring: "border-rose-500/30 dark:border-rose-500/40 bg-rose-500/10", glow: "shadow-rose-500/20" },
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -378,17 +378,17 @@ export default function PipelinePage() {
             {/* Page Header */}
             <div className="flex items-start justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-white">Agent Pipeline</h1>
-                    <p className="text-sm text-zinc-400 mt-1">
+                    <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">Agent Pipeline</h1>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
                         Live architecture of the LangGraph review agent — click any node to inspect its code.
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
                     {/* live badge */}
                     {isLive && activeJob && (
-                        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-2">
-                            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                            <span className="text-xs text-emerald-300 font-medium">
+                        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2">
+                            <span className="h-2 w-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
+                            <span className="text-xs text-emerald-700 dark:text-emerald-300 font-medium">
                                 Live — PR #{activeJob.prNumber}
                             </span>
                         </div>
@@ -397,7 +397,7 @@ export default function PipelinePage() {
                     <button
                         onClick={resetAll}
                         disabled={!isRunning && completedNodes.size === 0}
-                        className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="flex items-center gap-2 rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-white/[0.06] transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-xs"
                     >
                         <RotateCcw className="h-3.5 w-3.5" />
                         Reset
@@ -406,7 +406,7 @@ export default function PipelinePage() {
                     <button
                         onClick={runSimulation}
                         disabled={isRunning}
-                        className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                         {isSimulating ? (
                             <>
@@ -430,26 +430,26 @@ export default function PipelinePage() {
 
             {/* active job banner */}
             {activeJob && !isSimulating && (
-                <div className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3">
-                    <GitPullRequest className="h-4 w-4 text-zinc-400 shrink-0" />
+                <div className="flex items-center gap-3 rounded-xl border border-zinc-200/80 dark:border-white/[0.06] bg-white/80 dark:bg-white/[0.02] px-4 py-3 shadow-sm">
+                    <GitPullRequest className="h-4 w-4 text-zinc-500 dark:text-zinc-400 shrink-0" />
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm text-white truncate">{activeJob.prTitle}</p>
-                        <p className="text-xs text-zinc-500">{activeJob.repoFullName} · PR #{activeJob.prNumber}</p>
+                        <p className="text-sm font-medium text-zinc-900 dark:text-white truncate">{activeJob.prTitle}</p>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">{activeJob.repoFullName} · PR #{activeJob.prNumber}</p>
                     </div>
                     {isLive && (
-                        <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-1 rounded-full font-medium animate-pulse">
+                        <span className="text-[10px] bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 px-2 py-1 rounded-full font-medium animate-pulse">
                             reviewing
                         </span>
                     )}
                     {!isLive && liveCompleted.size > 2 && (
-                        <span className="text-[10px] bg-zinc-500/10 text-zinc-400 border border-zinc-500/20 px-2 py-1 rounded-full font-medium">
+                        <span className="text-[10px] bg-zinc-100 dark:bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-500/20 px-2 py-1 rounded-full font-medium">
                             completed
                         </span>
                     )}
                 </div>
             )}
 
-            {/* Main Layout — identical to your original */}
+            {/* Main Layout */}
             <div className="grid grid-cols-12 gap-6">
                 {/* Pipeline Column */}
                 <div className="col-span-12 lg:col-span-5 space-y-0">
@@ -482,38 +482,38 @@ export default function PipelinePage() {
                                                 whileTap={{ scale: 0.99 }}
                                                 onClick={() => setActiveNode(activeNode === node.id ? null : node.id)}
                                                 className={`w-full text-left rounded-xl border p-4 transition-all duration-300 cursor-pointer ${isActive
-                                                        ? `border-white/20 bg-white/[0.05] shadow-lg ${colors.glow}`
+                                                        ? `border-indigo-500/40 dark:border-white/20 bg-indigo-50/50 dark:bg-white/[0.05] shadow-lg ${colors.glow}`
                                                         : isDone
-                                                            ? "border-emerald-500/30 bg-emerald-500/5"
+                                                            ? "border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 shadow-xs"
                                                             : isSelected
-                                                                ? `border-white/15 bg-white/[0.04] shadow-md`
-                                                                : "border-white/[0.06] bg-white/[0.02] hover:border-white/10 hover:bg-white/[0.03]"
+                                                                ? `border-indigo-300 dark:border-white/15 bg-white dark:bg-white/[0.04] shadow-sm`
+                                                                : "border-zinc-200/80 dark:border-white/[0.06] bg-white/90 dark:bg-white/[0.02] hover:border-zinc-300 dark:hover:border-white/10 hover:bg-zinc-50 dark:hover:bg-white/[0.03] shadow-xs"
                                                     }`}
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${isActive || isSelected ? colors.ring : "border-white/[0.06] bg-white/[0.03]"
+                                                    <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${isActive || isSelected ? colors.ring : "border-zinc-200 dark:border-white/[0.06] bg-zinc-50 dark:bg-white/[0.03]"
                                                         } transition-all`}>
                                                         {isDone && !isActive ? (
-                                                            <CheckCircle2 className="h-4.5 w-4.5 text-emerald-400" />
+                                                            <CheckCircle2 className="h-4.5 w-4.5 text-emerald-500 dark:text-emerald-400" />
                                                         ) : isActive ? (
                                                             <span className={`h-4 w-4 rounded-full border-2 ${colors.icon} border-current border-t-transparent animate-spin`} />
                                                         ) : (
-                                                            <Icon className={`h-4 w-4 ${isSelected ? colors.icon : "text-zinc-500"}`} />
+                                                            <Icon className={`h-4 w-4 ${isSelected ? colors.icon : "text-zinc-400 dark:text-zinc-500"}`} />
                                                         )}
                                                     </div>
 
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center gap-2">
                                                             {isAgentNode ? (
-                                                                <span className="font-mono text-sm font-semibold text-white">{node.label}</span>
+                                                                <span className="font-mono text-sm font-semibold text-zinc-900 dark:text-white">{node.label}</span>
                                                             ) : (
-                                                                <span className="text-sm font-semibold text-white">{node.label}</span>
+                                                                <span className="text-sm font-semibold text-zinc-900 dark:text-white">{node.label}</span>
                                                             )}
                                                             {isDone && (
-                                                                <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-medium">done</span>
+                                                                <span className="text-[10px] bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 px-1.5 py-0.5 rounded font-medium">done</span>
                                                             )}
                                                             {isActive && (
-                                                                <span className="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded font-medium animate-pulse">running</span>
+                                                                <span className="text-[10px] bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20 px-1.5 py-0.5 rounded font-medium animate-pulse">running</span>
                                                             )}
                                                         </div>
                                                         {/* show live message if available, else default sublabel */}
@@ -522,15 +522,15 @@ export default function PipelinePage() {
                                                         </p>
                                                     </div>
 
-                                                    <ChevronRight className={`h-3.5 w-3.5 shrink-0 transition-transform ${activeNode === node.id ? "rotate-90 text-zinc-300" : "text-zinc-600"}`} />
+                                                    <ChevronRight className={`h-3.5 w-3.5 shrink-0 transition-transform ${activeNode === node.id ? "rotate-90 text-zinc-800 dark:text-zinc-300" : "text-zinc-400 dark:text-zinc-600"}`} />
                                                 </div>
                                             </motion.button>
 
                                             {i < nodes.length - 1 && (
                                                 <div className="flex flex-col items-center my-0.5">
-                                                    <div className="w-px h-3 bg-white/[0.08]" />
-                                                    <ArrowDown className="h-3 w-3 text-zinc-700" />
-                                                    <div className="w-px h-3 bg-white/[0.08]" />
+                                                    <div className="w-px h-3 bg-zinc-200 dark:bg-white/[0.08]" />
+                                                    <ArrowDown className="h-3 w-3 text-zinc-400 dark:text-zinc-700" />
+                                                    <div className="w-px h-3 bg-zinc-200 dark:bg-white/[0.08]" />
                                                 </div>
                                             )}
                                         </div>
@@ -539,9 +539,9 @@ export default function PipelinePage() {
 
                                 {phase !== "agent" && (
                                     <div className="flex flex-col items-center my-1">
-                                        <div className="w-px h-4 bg-white/[0.06]" />
-                                        <ArrowDown className="h-3.5 w-3.5 text-zinc-700" />
-                                        <div className="w-px h-4 bg-white/[0.06]" />
+                                        <div className="w-px h-4 bg-zinc-200 dark:bg-white/[0.06]" />
+                                        <ArrowDown className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-700" />
+                                        <div className="w-px h-4 bg-zinc-200 dark:bg-white/[0.06]" />
                                     </div>
                                 )}
                             </div>
@@ -549,7 +549,7 @@ export default function PipelinePage() {
                     })}
                 </div>
 
-                {/* Detail Panel — identical to your original */}
+                {/* Detail Panel */}
                 <div className="col-span-12 lg:col-span-7">
                     <AnimatePresence mode="wait">
                         {activeNode ? (() => {
@@ -564,15 +564,15 @@ export default function PipelinePage() {
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -10 }}
                                     transition={{ duration: 0.25 }}
-                                    className="sticky top-6 rounded-2xl border border-white/[0.08] bg-[#0B0F1A]/80 backdrop-blur-xl overflow-hidden"
+                                    className="sticky top-6 rounded-2xl border border-zinc-200/80 dark:border-white/[0.08] bg-white/95 dark:bg-[#0B0F1A]/80 backdrop-blur-xl overflow-hidden shadow-sm"
                                 >
-                                    <div className="flex items-center gap-3 border-b border-white/[0.06] p-5">
+                                    <div className="flex items-center gap-3 border-b border-zinc-200/80 dark:border-white/[0.06] p-5">
                                         <div className={`flex h-10 w-10 items-center justify-center rounded-xl border ${colors.ring}`}>
                                             <Icon className={`h-5 w-5 ${colors.icon}`} />
                                         </div>
                                         <div>
-                                            <p className="font-semibold text-white">{node.label}</p>
-                                            <p className="text-[11px] text-zinc-500">{node.sublabel}</p>
+                                            <p className="font-semibold text-zinc-900 dark:text-white">{node.label}</p>
+                                            <p className="text-[11px] text-zinc-500 dark:text-zinc-400">{node.sublabel}</p>
                                         </div>
                                         <div className="ml-auto">
                                             <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider ${phaseColors[node.phase as keyof typeof phaseColors].badge}`}>
@@ -581,20 +581,20 @@ export default function PipelinePage() {
                                         </div>
                                     </div>
 
-                                    <div className="flex items-start gap-2.5 border-b border-white/[0.05] bg-white/[0.02] px-5 py-4">
-                                        <Info className="h-4 w-4 text-zinc-500 shrink-0 mt-0.5" />
-                                        <p className="text-sm text-zinc-300 leading-relaxed">{node.detail}</p>
+                                    <div className="flex items-start gap-2.5 border-b border-zinc-200/70 dark:border-white/[0.05] bg-zinc-50/50 dark:bg-white/[0.02] px-5 py-4">
+                                        <Info className="h-4 w-4 text-zinc-400 dark:text-zinc-500 shrink-0 mt-0.5" />
+                                        <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">{node.detail}</p>
                                     </div>
 
                                     <div className="p-0">
-                                        <div className="flex items-center justify-between border-b border-white/[0.05] bg-[#080B12] px-5 py-2.5">
+                                        <div className="flex items-center justify-between border-b border-zinc-200/70 dark:border-white/[0.05] bg-zinc-100/90 dark:bg-[#080B12] px-5 py-2.5">
                                             <div className="flex items-center gap-2">
                                                 <div className="flex gap-1.5">
                                                     <span className="h-2.5 w-2.5 rounded-full bg-red-500/50" />
                                                     <span className="h-2.5 w-2.5 rounded-full bg-yellow-500/50" />
                                                     <span className="h-2.5 w-2.5 rounded-full bg-green-500/50" />
                                                 </div>
-                                                <span className="font-mono text-[11px] text-zinc-500 ml-2">
+                                                <span className="font-mono text-[11px] text-zinc-600 dark:text-zinc-500 ml-2">
                                                     {node.code.split("\n")[0].replace("// ", "").replace("# ", "")}
                                                 </span>
                                             </div>
@@ -602,7 +602,7 @@ export default function PipelinePage() {
                                                 {node.code.includes("#") ? "Python" : "TypeScript"}
                                             </span>
                                         </div>
-                                        <pre className="overflow-x-auto p-5 text-[11.5px] leading-relaxed font-mono text-zinc-300 max-h-80 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10">
+                                        <pre className="overflow-x-auto p-5 text-[11.5px] leading-relaxed font-mono text-zinc-800 dark:text-zinc-300 bg-zinc-50 dark:bg-transparent max-h-80 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-300 dark:scrollbar-thumb-white/10">
                                             <code>{node.code}</code>
                                         </pre>
                                     </div>
@@ -613,20 +613,20 @@ export default function PipelinePage() {
                                 key="empty"
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                className="flex h-80 flex-col items-center justify-center rounded-2xl border border-dashed border-white/[0.08] bg-white/[0.01] text-center gap-4"
+                                className="flex h-80 flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-200 dark:border-white/[0.08] bg-white/50 dark:bg-white/[0.01] text-center gap-4"
                             >
-                                <div className="h-12 w-12 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center">
-                                    <GitBranch className="h-6 w-6 text-zinc-600" />
+                                <div className="h-12 w-12 rounded-2xl bg-zinc-100 dark:bg-white/[0.03] border border-zinc-200 dark:border-white/[0.06] flex items-center justify-center">
+                                    <GitBranch className="h-6 w-6 text-zinc-400 dark:text-zinc-600" />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-medium text-zinc-400">Select a node to inspect</p>
-                                    <p className="text-xs text-zinc-600 mt-1">
+                                    <p className="text-sm font-medium text-zinc-700 dark:text-zinc-400">Select a node to inspect</p>
+                                    <p className="text-xs text-zinc-500 dark:text-zinc-600 mt-1">
                                         Click any pipeline node to view its source code and details
                                     </p>
                                 </div>
                                 <button
                                     onClick={runSimulation}
-                                    className="flex items-center gap-2 rounded-xl bg-white/[0.04] border border-white/[0.08] px-4 py-2 text-xs text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-all"
+                                    className="flex items-center gap-2 rounded-xl bg-zinc-100 dark:bg-white/[0.04] border border-zinc-200 dark:border-white/[0.08] px-4 py-2 text-xs text-zinc-700 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200/70 dark:hover:bg-white/[0.06] transition-all cursor-pointer"
                                 >
                                     <Play className="h-3.5 w-3.5 fill-current" />
                                     Or simulate a full PR review run
@@ -635,18 +635,18 @@ export default function PipelinePage() {
                         )}
                     </AnimatePresence>
 
-                    {/* Memory Bank showcase — identical to your original */}
-                    <div className="mt-6 rounded-2xl border border-violet-500/15 bg-violet-500/5 p-5 space-y-4">
+                    {/* Memory Bank showcase */}
+                    <div className="mt-6 rounded-2xl border border-violet-500/20 bg-violet-50/50 dark:bg-violet-500/5 p-5 space-y-4">
                         <div className="flex items-center gap-2">
-                            <Brain className="h-4.5 w-4.5 text-violet-400" />
-                            <h3 className="text-sm font-semibold text-white">Why Memory Makes This Different</h3>
+                            <Brain className="h-4.5 w-4.5 text-violet-600 dark:text-violet-400" />
+                            <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">Why Memory Makes This Different</h3>
                         </div>
-                        <p className="text-xs text-zinc-400 leading-relaxed">
+                        <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
                             Unlike generic AI tools, Powerful embeds every approved review decision into a{" "}
-                            <span className="text-violet-300 font-medium">pgvector database</span>. When a similar code pattern
+                            <span className="text-violet-700 dark:text-violet-300 font-medium">pgvector database</span>. When a similar code pattern
                             appears in a future PR, the agent retrieves past decisions via{" "}
-                            <span className="text-violet-300 font-medium">cosine similarity search</span> and injects them as
-                            context into the LLM prompt — making comments proprietary to your team's conventions.
+                            <span className="text-violet-700 dark:text-violet-300 font-medium">cosine similarity search</span> and injects them as
+                            context into the LLM prompt — making comments proprietary to your team&apos;s conventions.
                         </p>
                         <div className="grid grid-cols-3 gap-3 pt-1">
                             {[
@@ -654,10 +654,10 @@ export default function PipelinePage() {
                                 { label: "LLM Model", value: "llama-3.3-70b", icon: Cpu },
                                 { label: "Similarity Threshold", value: "> 0.40 cosine", icon: Search },
                             ].map((item) => (
-                                <div key={item.label} className="rounded-xl bg-white/[0.03] border border-white/[0.05] p-3 space-y-1.5">
-                                    <item.icon className="h-3.5 w-3.5 text-violet-400" />
-                                    <p className="text-[11px] font-semibold text-white">{item.value}</p>
-                                    <p className="text-[10px] text-zinc-500">{item.label}</p>
+                                <div key={item.label} className="rounded-xl bg-white dark:bg-white/[0.03] border border-zinc-200/80 dark:border-white/[0.05] p-3 space-y-1.5 shadow-xs">
+                                    <item.icon className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
+                                    <p className="text-[11px] font-semibold text-zinc-900 dark:text-white">{item.value}</p>
+                                    <p className="text-[10px] text-zinc-500 dark:text-zinc-400">{item.label}</p>
                                 </div>
                             ))}
                         </div>
