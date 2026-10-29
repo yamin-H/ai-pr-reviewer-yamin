@@ -9,6 +9,7 @@ import type {
   SettingsData,
   UsageData,
   User,
+  UserOrg,
   WeeklyDigest,
 } from "./types";
 
@@ -75,6 +76,11 @@ export function getLoginUrl(): string {
   return `${base}/auth/github`;
 }
 
+export function getInstallUrl(): string {
+  const appName = process.env.NEXT_PUBLIC_GITHUB_APP_NAME || "powerful-pr-agent";
+  return `https://github.com/apps/${appName}/installations/new`;
+}
+
 export function getLogoutUrl(): string {
   const base = getApiUrl();
   return `${base}/auth/logout`;
@@ -83,8 +89,14 @@ export function getLogoutUrl(): string {
 export const api = {
   getMe: () => fetchApi<{ user: User }>("/auth/me"),
 
+  logout: () =>
+    fetchApi<{ success: boolean }>("/auth/logout", { method: "POST" }),
+
   getOrgs: () =>
-    fetchApi<{ orgs: Array<{ id: string; login: string }> }>("/auth/orgs"),
+    fetchApi<{ orgs: UserOrg[] }>("/auth/user-orgs"),
+
+  getUserOrgs: () =>
+    fetchApi<{ orgs: UserOrg[] }>("/auth/user-orgs"),
 
   switchOrg: (orgId: string) =>
     fetchApi<{ success: boolean; org: { id: string; login: string } }>(
@@ -103,6 +115,16 @@ export const api = {
       body: JSON.stringify({ enabled }),
     }),
 
+  syncRepo: (id: string) =>
+    fetchApi<{ success: boolean; stored_count: number; repo: Repo }>(`/api/repos/${id}/sync`, {
+      method: "POST",
+    }),
+
+  syncRepoRules: (id: string) =>
+    fetchApi<{ success: boolean; customRulesCount: number; rules: string[]; repo: Repo }>(`/api/repos/${id}/sync-rules`, {
+      method: "POST",
+    }),
+
   syncRepos: () =>
     fetchApi<{ synced: number; repos: Repo[] }>("/api/repos/sync", {
       method: "POST",
@@ -118,6 +140,7 @@ export const api = {
     }),
 
   getReviews: (params?: {
+    cursor?: string;
     repoId?: string;
     status?: string;
     page?: number;
@@ -127,6 +150,7 @@ export const api = {
     search?: string;
   }) => {
     const query = new URLSearchParams();
+    if (params?.cursor) query.set("cursor", params.cursor);
     if (params?.repoId && params.repoId !== "all") query.set("repoId", params.repoId);
     if (params?.status && params.status !== "all") query.set("status", params.status);
     if (params?.page) query.set("page", params.page.toString());
@@ -140,6 +164,23 @@ export const api = {
   },
 
   getExportCsvUrl: (params?: {
+    repoId?: string;
+    status?: string;
+    from?: string;
+    to?: string;
+    search?: string;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.repoId && params.repoId !== "all") query.set("repoId", params.repoId);
+    if (params?.status && params.status !== "all") query.set("status", params.status);
+    if (params?.from) query.set("from", params.from);
+    if (params?.to) query.set("to", params.to);
+    if (params?.search) query.set("search", params.search);
+    const qs = query.toString();
+    return `${getApiUrl()}/api/reviews/export/csv${qs ? `?${qs}` : ""}`;
+  },
+
+  getReviewsExportUrl: (params?: {
     repoId?: string;
     status?: string;
     from?: string;
