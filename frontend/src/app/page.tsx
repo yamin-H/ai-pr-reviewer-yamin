@@ -44,8 +44,8 @@ const BADGES = [
   { icon: Brain, label: "PostgreSQL pgvector RAG", color: "#0891B2" },
   { icon: Sparkles, label: "Groq Llama 3.3 70B", color: "#6D28D9" },
   { icon: FileCode, label: ".powerful.yml Rule Engine", color: "#0891B2" },
-  { icon: ShieldCheck, label: "Zero Hallucination AST Chunking", color: "#6D28D9" },
-  { icon: Activity, label: "Avg Review Speed: 1.14s", color: "#0891B2" },
+  { icon: ShieldCheck, label: "Context-Preserving Diff Chunking", color: "#6D28D9" },
+  { icon: Activity, label: "Sub-2s Groq LLM Inference", color: "#0891B2" },
 ];
 
 export default function Home() {
@@ -200,7 +200,7 @@ export default function Home() {
             <span className="hidden lg:inline-block text-zinc-300 dark:text-zinc-700">|</span>
             <span className="shrink-0 hidden lg:flex items-center gap-1.5 text-zinc-700 dark:text-zinc-300">
               <ShieldCheck className="h-3 w-3 text-[#6D28D9] dark:text-[#A78BFA]" />
-              Zero Hallucination AST
+              Precision Diff Chunking
             </span>
           </div>
           <div className="hidden sm:flex items-center gap-2 shrink-0">
@@ -515,7 +515,7 @@ export default function Home() {
             </h2>
             <div className="accent-line mb-4" />
             <p className="text-[15px] text-[#4B5563] dark:text-zinc-400 max-w-xl leading-relaxed">
-              Every pull request passes through an 8-stage state machine that isolates context extraction, AST segmenting, pgvector search, and atomic GitHub dispatching.
+              Every pull request passes through an 8-stage state machine that isolates context extraction, diff chunking, pgvector search, and atomic GitHub dispatching.
             </p>
           </div>
           <PipelineExplorer />
@@ -670,12 +670,12 @@ export default function Home() {
               <span className="text-zinc-300 dark:text-zinc-700">·</span>
               <span>pgvector v0.8.0</span>
               <span className="text-zinc-300 dark:text-zinc-700">·</span>
-              <span>AST Engine v2.0</span>
+              <span>Review Engine v2.0</span>
             </div>
             <div className="flex items-center gap-4 text-[11px]">
               <span className="flex items-center gap-1">
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-                Zero-Retention AST Sandboxing
+                Zero-Retention Sandboxing
               </span>
               <span className="hidden md:inline text-zinc-300 dark:text-zinc-700">·</span>
               <span className="hidden md:inline">SOC2 Type II Ready</span>
@@ -787,7 +787,7 @@ export default function Home() {
                   </li>
                   <li>
                     <Link href="/dashboard/pipeline" className="hover:text-[#6D28D9] dark:hover:text-white transition-colors duration-150">
-                      AST Graph Visualizer
+                      Pipeline Graph Visualizer
                     </Link>
                   </li>
                 </ul>

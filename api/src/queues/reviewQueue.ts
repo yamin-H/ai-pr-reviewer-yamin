@@ -9,6 +9,7 @@ export interface ReviewJobData {
     head_sha?: string;
 }
 
+// Job ID will be the review record ID (cuid) for idempotency
 const reviewQueue = new Queue<ReviewJobData>('review-queue', {
     connection,
     defaultJobOptions: {
@@ -18,7 +19,9 @@ const reviewQueue = new Queue<ReviewJobData>('review-queue', {
             delay: 5000         
         },
         removeOnComplete: 100, 
-        removeOnFail: 50       
+        removeOnFail: 50,
+        // Use job_id as BullMQ job ID for idempotency
+        // This prevents duplicate jobs even if webhook fires multiple times
     }
 });
 

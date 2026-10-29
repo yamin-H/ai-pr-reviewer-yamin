@@ -23,7 +23,26 @@ router.get('/', async (req: Request, res: Response) => {
             orderBy: { createdAt: 'desc' }
         })
 
-        res.json({ repos })
+        // Transform to match frontend Repo type exactly
+        const formattedRepos = repos.map(repo => ({
+            ...repo,
+            enabled: repo.enabled ?? true,
+            customRulesCount: repo.customRulesCount ?? 0,
+            _count: {
+                reviews: repo._count?.reviews ?? 0,
+                memoryEntries: repo._count?.memoryEntries ?? 0,
+            },
+            org: repo.org ? {
+                ...repo.org,
+                isInstalled: repo.org.isInstalled ?? true,
+                reviewSensitivity: repo.org.reviewSensitivity ?? 0.5,
+                triggerOnSync: repo.org.triggerOnSync ?? true,
+                plan: repo.org.plan ?? 'free',
+                monthlyReviewCount: repo.org.monthlyReviewCount ?? 0,
+            } : undefined
+        }))
+
+        res.json({ repos: formattedRepos })
     } catch (err) {
         console.error(err)
         res.status(500).json({ error: 'Failed to fetch repos' })
@@ -62,7 +81,6 @@ router.post('/:id/sync', async (req: Request, res: Response) => {
             storedCount = agentRes.data?.stored_count || 0
         }
 
-
         // Return updated counts
         const updated = await prisma.repo.findUnique({
             where: { id },
@@ -84,7 +102,7 @@ router.post('/:id/sync', async (req: Request, res: Response) => {
         })
     } catch (err: any) {
         console.error('Failed to sync repo:', err?.message || err)
-        res.status(500).json({ error: 'Failed to scan repository: ' + (err?.message || 'internal error') })
+        res.status(500).json({ error: 'Failed to scan repository' })
     }
 })
 
@@ -130,8 +148,11 @@ router.post('/:id/sync-rules', async (req: Request, res: Response) => {
                 const lines = contentStr.split('\n')
                 for (const line of lines) {
                     const trimmed = line.trim()
+                    if (!trimmed || trimmed.startsWith('#')) continue
                     if (trimmed.startsWith('- ') && !trimmed.startsWith('- rules:')) {
-                        const rule = trimmed.replace(/^-\s*["']?/, '').replace(/["']?$/, '').trim()
+                        let rule = trimmed.substring(2).trim()
+                        rule = rule.replace(/^["']|["']$/g, '').trim()
+                        rule = rule.replace(/\s*#.*$/, '').trim()
                         if (rule) rules.push(rule)
                     }
                 }
@@ -152,8 +173,8 @@ router.post('/:id/sync-rules', async (req: Request, res: Response) => {
         })
     } catch (err: any) {
         console.error('Failed to sync repo rules:', err?.message || err)
-        res.status(500).json({ error: 'Failed to sync custom rules: ' + (err?.message || 'internal error') })
+        res.status(500).json({ error: 'Failed to sync custom rules' })
     }
 })
 
-export default router
+export default router

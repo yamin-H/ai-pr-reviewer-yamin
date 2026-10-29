@@ -1,7 +1,6 @@
 annotated-doc==0.0.4
 annotated-types==0.7.0
 anyio==4.14.2
-asyncpg==0.31.0
 certifi==2026.6.17
 cffi==2.1.0
 charset-normalizer==3.4.9
@@ -65,6 +64,5 @@ urllib3==2.7.0
 uuid_utils==0.17.0
 uvicorn==0.51.0
 websockets==15.0.1
-win32_setctime==1.2.0
 xxhash==3.8.1
 zstandard==0.25.0

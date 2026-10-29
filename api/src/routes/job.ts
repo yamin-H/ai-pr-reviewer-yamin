@@ -1,6 +1,11 @@
 import { Router, Request, Response } from 'express'
 import { prisma } from '../lib/prisma.js'
 import reviewQueue from '../queues/reviewQueue.js'
+import { Queue } from 'bullmq'
+import connection from '../lib/redis.js'
+
+// Dead letter queue for failed reviews
+const deadLetterQueue = new Queue('review-dead-letter', { connection })
 
 const router = Router()
 
@@ -87,8 +92,21 @@ router.get('/', async (req: Request, res: Response) => {
                 }
             })
 
+        // Compute tenant-scoped counts so other organizations' queue numbers are not leaked
+        const completedReviews = await prisma.pRReview.count({ where: { orgId, status: 'completed' } })
+        const failedReviews = await prisma.pRReview.count({ where: { orgId, status: 'failed' } })
+        const pendingReviews = await prisma.pRReview.count({ where: { orgId, status: 'pending' } })
+
+        const tenantCounts = {
+            active: formattedJobs.filter((j) => j.state === 'active').length,
+            waiting: Math.max(formattedJobs.filter((j) => j.state === 'waiting').length, pendingReviews),
+            completed: Math.max(formattedJobs.filter((j) => j.state === 'completed').length, completedReviews),
+            failed: Math.max(formattedJobs.filter((j) => j.state === 'failed').length, failedReviews),
+            delayed: 0,
+        }
+
         res.json({
-            counts,
+            counts: tenantCounts,
             jobs: formattedJobs,
         })
     } catch (err: any) {
@@ -117,6 +135,93 @@ router.get('/latest', async (req: Request, res: Response) => {
     } catch (err: any) {
         console.error('Failed to get latest job:', err?.message || err)
         res.status(500).json({ error: 'Failed to get latest job' })
+    }
+})
+
+// GET /api/jobs/dead-letter — fetch failed jobs from dead letter queue
+router.get('/dead-letter', async (req: Request, res: Response) => {
+    try {
+        const orgId = (req as any).user.orgId as string
+
+        // Get org's review IDs for filtering
+        const orgReviewIds = new Set(
+            (await prisma.pRReview.findMany({
+                where: { orgId },
+                select: { id: true }
+            })).map(r => r.id)
+        )
+
+        const jobs = await deadLetterQueue.getJobs(['waiting', 'active', 'completed', 'failed'], 0, 100, true)
+        
+        const filteredJobs = jobs
+            .filter((j) => j?.data?.job_id && orgReviewIds.has(j.data.job_id))
+            .map((j) => {
+                const timestamp = j.timestamp
+                const createdAt = Array.isArray(timestamp) 
+                    ? (timestamp.length > 0 ? new Date(timestamp[0]).toISOString() : null)
+                    : timestamp 
+                        ? new Date(timestamp).toISOString() 
+                        : null
+                
+                return {
+                    id: String(j.id),
+                    reviewId: j.data.job_id,
+                    repo: j.data.repo,
+                    prNumber: j.data.pr_number,
+                    failedAt: j.data.failedAt,
+                    error: j.data.error,
+                    attemptsMade: j.data.attemptsMade,
+                    finalFailure: j.data.finalFailure,
+                    createdAt,
+                }
+            })
+
+        res.json({ jobs: filteredJobs })
+    } catch (err: any) {
+        console.error('Failed to get dead letter jobs:', err?.message || err)
+        res.status(500).json({ error: 'Failed to fetch dead letter queue' })
+    }
+})
+
+// POST /api/jobs/dead-letter/:id/replay — replay a failed job
+router.post('/dead-letter/:id/replay', async (req: Request, res: Response) => {
+    try {
+        const orgId = (req as any).user.orgId as string
+        const jobId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
+
+        const job = await deadLetterQueue.getJob(jobId)
+        if (!job) {
+            res.status(404).json({ error: 'Job not found in dead letter queue' })
+            return
+        }
+
+        // Verify ownership
+        const review = await prisma.pRReview.findUnique({
+            where: { id: job.data.job_id }
+        })
+        if (!review || review.orgId !== orgId) {
+            res.status(404).json({ error: 'Job not found' })
+            return
+        }
+
+        // Reset review status to pending
+        await prisma.pRReview.update({
+            where: { id: job.data.job_id },
+            data: { status: 'pending' }
+        })
+
+        // Re-add to main review queue
+        await reviewQueue.add('review-pr', job.data, {
+            jobId: job.data.job_id // Use same job ID for idempotency
+        })
+
+        // Remove from dead letter queue
+        await job.remove()
+
+        res.json({ success: true, message: 'Job re-queued for processing' })
+    } catch (err: any) {
+        console.error('Failed to replay dead letter job:', err?.message || err)
+        res.status(500).json({ error: 'Failed to replay job' })
     }
 })
 

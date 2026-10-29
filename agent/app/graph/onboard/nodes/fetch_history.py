@@ -1,5 +1,3 @@
-from github import Github
-from app.core.config import GITHUB_TOKEN
 from app.services.github import get_github_client
 from app.graph.onboard.state import OnboardState
 from datetime import datetime, timedelta, timezone
@@ -11,11 +9,9 @@ async def fetch_history(state: OnboardState) -> OnboardState:
     try:
         github_client = await get_github_client(state.get('installation_id'))
     except Exception as e:
-        print(f"Could not get installation client: {e}. Falling back to default token.")
-        github_client = Github(GITHUB_TOKEN) if GITHUB_TOKEN else None
-
-    if not github_client:
-        print(f"No GitHub client available to fetch history for {repo_name}")
+        # Installation tokens are the only supported credential source. Do not
+        # fall back to a long-lived personal access token (GITHUB_TOKEN).
+        print(f"Could not get installation client: {e}")
         return {**state, "prs": [], "decisions": [], "stored_count": 0, "error": "No GitHub credentials"}
 
     try:

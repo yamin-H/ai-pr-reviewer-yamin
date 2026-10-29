@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DigestCard } from "@/components/dashboard/digest-card";
-import { BookOpen, Calendar, Mail, ShieldAlert, Sparkles, TrendingUp } from "lucide-react";
+import { BookOpen, Mail, ShieldAlert, Sparkles, TrendingUp } from "lucide-react";
 import type { WeeklyDigest } from "@/lib/types";
 
 export default function WeeklyDigestPage() {
@@ -13,19 +13,33 @@ export default function WeeklyDigestPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadDigests() {
-      try {
-        setLoading(true);
-        const res = await api.getDigests();
-        setDigests(res.digests);
-      } catch (err) {
-        console.error("Failed to load digests", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadDigests();
+    let active = true;
+    api.getDigests()
+      .then((res) => {
+        if (active) {
+          setDigests(res.digests);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (active) {
+          console.error("Failed to load digests", err);
+          setLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
   }, []);
+
+  const refreshDigests = async () => {
+    try {
+      const res = await api.getDigests();
+      setDigests(res.digests);
+    } catch (err) {
+      console.error("Failed to refresh digests", err);
+    }
+  };
 
   if (loading) {
     return (
@@ -55,51 +69,56 @@ export default function WeeklyDigestPage() {
           </h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">Summarized logs of pull requests reviewed, flags raised, and team patterns learned.</p>
         </div>
-        <ButtonSyncDigest />
+        <ButtonSyncDigest onCompiled={refreshDigests} />
       </div>
 
-      {/* Aggregate metrics */}
-      <div className="grid gap-5 sm:grid-cols-3">
-        <div className="glass-card p-5 flex items-center gap-4 hover:border-zinc-300 dark:hover:border-white/[0.14] hover:-translate-y-0.5 transition-all">
-          <div className="h-11 w-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
-            <TrendingUp className="h-5 w-5" />
+      {/* Aggregate Metrics Bar */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Card className="p-4 border border-zinc-200/80 dark:border-white/[0.08] bg-white dark:bg-[#080C14]">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+              <TrendingUp className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs text-zinc-500 font-medium">Total PRs Summarized</p>
+              <p className="text-xl font-bold text-zinc-900 dark:text-white">{totalReviewed}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-2xl font-extrabold text-zinc-900 dark:text-white">{totalReviewed}</p>
-            <p className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Total PRs Analyzed</p>
-          </div>
-        </div>
-
-        <div className="glass-card p-5 flex items-center gap-4 hover:border-zinc-300 dark:hover:border-white/[0.14] hover:-translate-y-0.5 transition-all">
-          <div className="h-11 w-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
-            <ShieldAlert className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="text-2xl font-extrabold text-zinc-900 dark:text-white">{totalFlags}</p>
-            <p className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">AI Flags Raised</p>
-          </div>
-        </div>
-
-        <div className="glass-card p-5 flex items-center gap-4 hover:border-zinc-300 dark:hover:border-white/[0.14] hover:-translate-y-0.5 transition-all">
-          <div className="h-11 w-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
-            <Sparkles className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">{totalPatterns}</p>
-            <p className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Guidelines Extracted</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Grid of digests */}
-      {digests.length === 0 ? (
-        <Card className="flex flex-col items-center justify-center p-16 text-center">
-          <BookOpen className="h-12 w-12 text-zinc-400 dark:text-zinc-600 mb-4" />
-          <h3 className="text-sm font-semibold text-zinc-900 dark:text-white mb-1">No digests yet</h3>
-          <p className="text-xs text-zinc-500 max-w-xs">
-            Digests are compiled automatically at the end of every calendar week.
-          </p>
         </Card>
+        <Card className="p-4 border border-zinc-200/80 dark:border-white/[0.08] bg-white dark:bg-[#080C14]">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+              <ShieldAlert className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs text-zinc-500 font-medium">Critical Flags Highlighted</p>
+              <p className="text-xl font-bold text-zinc-900 dark:text-white">{totalFlags}</p>
+            </div>
+          </div>
+        </Card>
+        <Card className="p-4 border border-zinc-200/80 dark:border-white/[0.08] bg-white dark:bg-[#080C14]">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs text-zinc-500 font-medium">Team Patterns Reinforced</p>
+              <p className="text-xl font-bold text-zinc-900 dark:text-white">{totalPatterns}</p>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Digest Cards List */}
+      {digests.length === 0 ? (
+        <div className="text-center py-16 px-4 rounded-2xl border border-dashed border-zinc-300 dark:border-white/10 bg-white/50 dark:bg-white/[0.02]">
+          <Mail className="h-10 w-10 text-zinc-400 mx-auto mb-3" />
+          <h3 className="text-base font-semibold text-zinc-900 dark:text-white">No digests published yet</h3>
+          <p className="text-sm text-zinc-500 max-w-sm mx-auto mt-1 mb-4">
+            Weekly digests are synthesized automatically at the end of each week from resolved pull request telemetry.
+          </p>
+          <ButtonSyncDigest onCompiled={refreshDigests} />
+        </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
           {digests.map((digest) => (
@@ -111,27 +130,44 @@ export default function WeeklyDigestPage() {
   );
 }
 
-function ButtonSyncDigest() {
+function ButtonSyncDigest({ onCompiled }: { onCompiled?: () => void }) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const triggerDigestCompilation = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+  const triggerDigestCompilation = async () => {
+    try {
+      setLoading(true);
+      setErrorMessage(null);
+      await api.compileDigest();
       setSuccess(true);
-      setTimeout(() => setSuccess(false), 2000);
-    }, 1500);
+      if (onCompiled) {
+        onCompiled();
+      }
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err: unknown) {
+      console.error("Failed to compile digest:", err);
+      const msg = err instanceof Error ? err.message : "Compilation failed";
+      setErrorMessage(msg);
+      setTimeout(() => setErrorMessage(null), 4000);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <button
-      onClick={triggerDigestCompilation}
-      disabled={loading || success}
-      className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-900 dark:text-white cursor-pointer disabled:opacity-50 transition-all shadow-xs"
-    >
-      <Mail className="h-4 w-4" />
-      {loading ? "Compiling..." : success ? "Digest Dispatched!" : "Compile Latest Digest"}
-    </button>
+    <div className="flex flex-col items-end gap-1">
+      <button
+        onClick={triggerDigestCompilation}
+        disabled={loading}
+        className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 cursor-pointer disabled:opacity-50 transition-all shadow-xs"
+      >
+        <Mail className="h-4 w-4" />
+        {loading ? "Compiling with AI..." : success ? "Digest Generated!" : "Compile Latest Digest"}
+      </button>
+      {errorMessage && (
+        <span className="text-[11px] text-red-500 font-medium">{errorMessage}</span>
+      )}
+    </div>
   );
 }

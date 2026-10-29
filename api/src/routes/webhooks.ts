@@ -123,13 +123,14 @@ router.post('/github', verifyWebhookSignature, async (req: Request, res: Respons
 
             // --- Idempotency guard ---
             // GitHub may deliver the same webhook event more than once.
-            // SET NX returns 'OK' on first delivery and null on any duplicate
-            // within the 60-second window. Always respond 200 so GitHub does
-            // not treat a deduplicated event as a failure to retry.
+            // Two-layer dedup:
+            // 1. Redis fast path (24h TTL) - catches rapid retries
+            // 2. Database (PRReview.headSha) - catches retries days later
             const dedupKey = `webhook:dedup:${repoGithubId}:${prNumber}:${action}:${headSha}`
-            const isFirst = await redis.set(dedupKey, '1', 'EX', 60, 'NX')
+            // 24 hours = 86400 seconds (GitHub retries up to 3 days)
+            const isFirst = await redis.set(dedupKey, '1', 'EX', 86400, 'NX')
             if (isFirst === null) {
-                console.log(`Skipping duplicate webhook: PR #${prNumber} ${action} on ${repo} (sha: ${headSha.slice(0, 7)})`)
+                console.log(`Skipping duplicate webhook (Redis): PR #${prNumber} ${action} on ${repo} (sha: ${headSha.slice(0, 7)})`)
                 res.status(200).json({ received: true, ignored: 'duplicate_webhook' })
                 return
             }
@@ -193,25 +194,66 @@ router.post('/github', verifyWebhookSignature, async (req: Request, res: Respons
                     return
                 }
 
-                // Create review record — its id becomes the BullMQ job_id
-                const review = await prisma.pRReview.create({
-                    data: {
-                        prNumber,
-                        prTitle,
-                        status: 'pending',
+                // Idempotency: Check if review already exists for this PR + headSha
+                // This handles GitHub webhook retries (which can come days later)
+                const existingReview = await prisma.pRReview.findFirst({
+                    where: {
                         repoId: repoRecord.id,
-                        orgId: org.id
+                        prNumber,
+                        headSha: headSha
+                    } as any
+                })
+
+                if (existingReview) {
+                    console.log(`Review already exists for PR #${prNumber}@${headSha?.slice(0,7)} (id: ${existingReview.id})`)
+                    
+                    // If still pending, re-queue it
+                    if (existingReview.status === 'pending') {
+                        await reviewQueue.add('review-pr', {
+                            job_id: existingReview.id,
+                            repo,
+                            pr_number: prNumber,
+                            installation_id: installationId,
+                            head_sha: headSha,
+                        }, {
+                            jobId: existingReview.id // Use review ID as BullMQ job ID for idempotency
+                        })
+                        console.log(`→ Re-queued existing review job ${existingReview.id}`)
                     }
+                    
+                    res.status(200).json({ received: true, ignored: 'already_exists', reviewId: existingReview.id })
+                    return
+                }
+
+                // Create review record AND queue job atomically using transaction
+                // This prevents orphaned "pending" reviews if queue add fails
+                const result = await prisma.$transaction(async (tx) => {
+                    const review = await tx.pRReview.create({
+                        data: {
+                            prNumber,
+                            prTitle,
+                            status: 'pending',
+                            repoId: repoRecord.id,
+                            orgId: org.id,
+                            headSha: headSha
+                        } as any
+                    })
+
+                    // Add to queue with review ID as job ID (idempotent)
+                    const job = await reviewQueue.add('review-pr', {
+                        job_id: review.id,
+                        repo,
+                        pr_number: prNumber,
+                        installation_id: installationId,
+                        head_sha: headSha,
+                    }, {
+                        jobId: review.id // Critical: use review ID as BullMQ job ID
+                    })
+
+                    return { review, job }
                 })
 
-                const job = await reviewQueue.add('review-pr', {
-                    job_id: review.id,
-                    repo,
-                    pr_number: prNumber,
-                    installation_id: installationId,
-                    head_sha: headSha,
-                })
-
+                const { review, job } = result
                 console.log(`→ Review job ${job.id} queued for PR #${prNumber} on ${repo} (db id: ${review.id})`)
             } catch (err) {
                 console.error('Failed to create review job:', err)

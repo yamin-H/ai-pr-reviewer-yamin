@@ -28,14 +28,36 @@ router.get('/stats', async (req: Request, res: Response) => {
             where,
             take: 50,
             orderBy: { createdAt: 'desc' },
-            include: { repo: true }
+            include: { repo: { include: { org: true, _count: { select: { reviews: true, memoryEntries: true } } } } }
         })
+
+        // Format recent entries to match frontend MemoryEntry type
+        const formattedEntries = recentEntries.map(entry => ({
+            ...entry,
+            repo: entry.repo ? {
+                ...entry.repo,
+                enabled: entry.repo.enabled ?? true,
+                customRulesCount: entry.repo.customRulesCount ?? 0,
+                _count: {
+                    reviews: entry.repo._count?.reviews ?? 0,
+                    memoryEntries: entry.repo._count?.memoryEntries ?? 0,
+                },
+                org: entry.repo.org ? {
+                    ...entry.repo.org,
+                    isInstalled: entry.repo.org.isInstalled ?? true,
+                    reviewSensitivity: entry.repo.org.reviewSensitivity ?? 0.5,
+                    triggerOnSync: entry.repo.org.triggerOnSync ?? true,
+                    plan: entry.repo.org.plan ?? 'free',
+                    monthlyReviewCount: entry.repo.org.monthlyReviewCount ?? 0,
+                } : undefined
+            } : null
+        }))
 
         res.json({
             totalEntries,
-            byDecisionType,
-            byOutcome,
-            recentEntries
+            byDecisionType: byDecisionType.map(d => ({ decisionType: d.decisionType, _count: { decisionType: d._count.decisionType } })),
+            byOutcome: byOutcome.map(o => ({ outcome: o.outcome, _count: { outcome: o._count.outcome } })),
+            recentEntries: formattedEntries
         })
     } catch (err) {
         console.error(err)

@@ -19,9 +19,9 @@ export function RiskCalculator() {
   const [dismissalRate, setDismissalRate] = useState<number>(18);
 
   // Displayed (animated) score
-  const [displayScore, setDisplayScore] = useState<number>(0);
+  const [displayScore, setDisplayScore] = useState<number>(24);
   const scoreAnimRef = useRef<gsap.core.Tween | null>(null);
-  const scoreDisplayObj = useRef({ val: 0 });
+  const scoreDisplayObj = useRef({ val: 24 });
 
   // Displayed (animated) breakdown values
   const displayDiffRef = useRef<HTMLSpanElement>(null);
@@ -104,9 +104,7 @@ export function RiskCalculator() {
       gaugeCircleRef.current.style.strokeDasharray = String(circumference);
       gaugeCircleRef.current.style.strokeDashoffset = String(circumference * (1 - totalScore / 100));
     }
-    scoreDisplayObj.current.val = totalScore;
-    setDisplayScore(totalScore);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [circumference, totalScore]);
 
   return (
     <div className="w-full bevel-card p-6 sm:p-8">
@@ -122,7 +120,7 @@ export function RiskCalculator() {
               </h3>
             </div>
             <p className="text-[13px] text-[#4B5563] dark:text-zinc-400">
-              Powerful scores pull requests based on diff surface area, AST criticality, and historical team dismissal rates. Adjust the parameters below to see the live score computation.
+              Powerful scores pull requests based on diff surface area, file criticality, and historical team dismissal rates. Adjust the parameters below to see the live score computation.
             </p>
           </div>
 

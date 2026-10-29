@@ -3,11 +3,6 @@ from app.services.llm import llm
 from app.graph.onboard.state import OnboardState
 import json
 
-from langchain_core.messages import HumanMessage, SystemMessage
-from app.services.llm import llm
-from app.graph.onboard.state import OnboardState
-import json
-
 async def extract_decisions(state: OnboardState) -> OnboardState:
     prs = state.get('prs', [])
     print(f"Extracting decisions from {len(prs)} PRs...")
@@ -82,4 +77,4 @@ Respond ONLY with a JSON array, no markdown, no explanation:
             continue
 
     print(f"Extracted {len(decisions)} decisions")
-    return {**state, "decisions": decisions}
+    return {**state, "decisions": decisions}

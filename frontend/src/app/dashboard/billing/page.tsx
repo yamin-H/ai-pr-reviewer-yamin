@@ -13,18 +13,14 @@ import {
   Zap,
   Sparkles,
   Shield,
-  Clock,
   ArrowRight,
   AlertTriangle,
-  Layers,
   Building2,
   RefreshCw,
-  Sliders,
   Check,
   Cpu,
-  Info,
 } from "lucide-react";
-import type { BillingData, BillingTier } from "@/lib/types";
+import type { BillingData } from "@/lib/types";
 
 export default function BillingPage() {
   const [data, setData] = useState<BillingData | null>(null);
@@ -40,9 +36,10 @@ export default function BillingPage() {
         setError(null);
         const res = await api.getBilling();
         setData(res);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Failed to load billing subscription:", err);
-        setError(err.message || "Failed to load billing information");
+        const msg = err instanceof Error ? err.message : "Failed to load billing information";
+        setError(msg);
       } finally {
         setLoading(false);
       }
@@ -64,8 +61,9 @@ export default function BillingPage() {
         });
         setTimeout(() => setNotification(null), 4500);
       }
-    } catch (err: any) {
-      alert("Failed to update subscription tier: " + (err.message || "Unknown error"));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      alert("Failed to update subscription tier: " + msg);
     } finally {
       setSwitchingPlan(null);
     }
@@ -236,7 +234,7 @@ export default function BillingPage() {
               <span className="text-zinc-500 text-[11px] uppercase tracking-wider font-medium">Vector Memory</span>
               <p className="text-sm font-semibold text-zinc-900 dark:text-white mt-1 flex items-center gap-1.5">
                 <Shield className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-                {subscription.plan === "free" ? "Base AST Heuristics" : "Multi-PR Cross-Repository Memory"}
+                {subscription.plan === "free" ? "Base Pattern Heuristics" : "Multi-PR Cross-Repository Memory"}
               </p>
             </div>
           </div>

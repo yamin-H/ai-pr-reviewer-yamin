@@ -55,7 +55,7 @@ const worker = new Worker<DigestJobData>(
                     }))
                 },
                 {
-                    headers: { 'x-internal-secret': process.env.INTERNAL_SERVICE_KEY || 'powerful-internal-secret-change-in-prod' }
+                    headers: { 'x-internal-secret': process.env.INTERNAL_SERVICE_KEY! }
                 }
             )
 

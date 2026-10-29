@@ -31,8 +31,21 @@ export default function QueuePage() {
   const [filter, setFilter] = useState<"all" | "active" | "waiting" | "completed" | "failed">("all");
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [replayingJobId, setReplayingJobId] = useState<string | null>(null);
 
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleReplayJob = async (jobId: string) => {
+    try {
+      setReplayingJobId(jobId);
+      await api.replayDeadLetterJob(jobId);
+      await fetchQueueData();
+    } catch (err: any) {
+      alert("Failed to replay job: " + (err.message || "Unknown error"));
+    } finally {
+      setReplayingJobId(null);
+    }
+  };
 
   const fetchQueueData = useCallback(async (isBackground = false) => {
     try {
@@ -364,11 +377,25 @@ export default function QueuePage() {
                           </Button>
                         </Link>
                       ) : (
-                        <Link href={`/dashboard/reviews/${job.reviewId}`}>
-                          <Button size="sm" variant="ghost" className="h-8 text-xs gap-1">
-                            Review <ArrowRight className="h-3.5 w-3.5" />
-                          </Button>
-                        </Link>
+                        <div className="flex items-center gap-1.5">
+                          {job.state === "failed" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleReplayJob(job.id)}
+                              disabled={replayingJobId === job.id}
+                              className="h-8 text-xs gap-1 border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20"
+                            >
+                              <RefreshCw className={`h-3 w-3 ${replayingJobId === job.id ? "animate-spin" : ""}`} />
+                              Replay
+                            </Button>
+                          )}
+                          <Link href={`/dashboard/reviews/${job.reviewId}`}>
+                            <Button size="sm" variant="ghost" className="h-8 text-xs gap-1">
+                              Review <ArrowRight className="h-3.5 w-3.5" />
+                            </Button>
+                          </Link>
+                        </div>
                       )}
                     </div>
                   </div>

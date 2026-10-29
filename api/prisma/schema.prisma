@@ -69,12 +69,15 @@ model PRReview {
     commentsCount   Int              @default(0)
     createdAt       DateTime         @default(now())
     completedAt     DateTime?
+    headSha         String?          // For idempotency: deduplicate webhook retries
     repoId          String
     repo            Repo             @relation(fields: [repoId], references: [id])
     orgId           String
     org             Organization     @relation(fields: [orgId], references: [id])
     comments        ReviewComment[]
     feedbackActions FeedbackAction[]
+
+    @@index([repoId, prNumber, headSha])
 }
 
 model ReviewComment {

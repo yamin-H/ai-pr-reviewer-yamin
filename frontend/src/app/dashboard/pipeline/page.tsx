@@ -209,7 +209,11 @@ const nodeColors: Record<string, { icon: string; ring: string; glow: string }> =
   rose: { icon: "text-rose-600 dark:text-rose-400", ring: "border-rose-500/30 dark:border-rose-500/40 bg-rose-500/10", glow: "shadow-rose-500/20" },
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+// Prefer the browser-facing URL; fall back to the public URL / localhost.
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL_BROWSER ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:3000";
 
 export default function PipelinePage() {
   const [activeNode, setActiveNode] = useState<string | null>(null);
@@ -276,40 +280,6 @@ export default function PipelinePage() {
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   }, [isSimulating, currentRunIndex]);
 
-  // ── Live polling for latest job ──────────────────────────────────────────────
-  useEffect(() => {
-    const poll = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/jobs/latest`, { credentials: "include" });
-        if (!res.ok) return;
-        const data = await res.json();
-        const job = data.job;
-        if (!job) return;
-        // new job appeared
-        if (job.id !== lastJobIdRef.current) {
-          lastJobIdRef.current = job.id;
-          setActiveJob({
-            id: job.id,
-            prNumber: job.prNumber,
-            prTitle: job.prTitle || `PR #${job.prNumber}`,
-            repoFullName: job.repo?.fullName || ""
-          });
-          // reset live state for new job
-          setLiveCompleted(new Set());
-          setLiveRunning(null);
-          setLiveMessages({});
-          // mark webhook + queue as instantly done (they already finished by the time we poll)
-          setLiveCompleted(new Set(["webhook", "queue"]));
-          openSSEStream(job.id);
-        }
-      } catch (_) {}
-    };
-
-    poll();
-    const interval = setInterval(poll, 3000);
-    return () => clearInterval(interval);
-  }, []);
-
   // ── SSE stream ───────────────────────────────────────────────────────────────
   const openSSEStream = (jobId: string) => {
     if (esRef.current) esRef.current.close();
@@ -317,9 +287,11 @@ export default function PipelinePage() {
     setIsLive(true);
 
     const es = new EventSource(
-      `${API_URL}/api/pipeline/stream/${jobId}`
+      `${API_URL}/api/pipeline/stream/${encodeURIComponent(jobId)}`,
+      // The stream is now authenticated via the session cookie. EventSource
+      // omits cookies on cross-origin requests unless this is enabled.
+      { withCredentials: true }
     );
-
 
     es.onmessage = (event) => {
       // ignore heartbeat pings
@@ -361,6 +333,40 @@ export default function PipelinePage() {
 
     esRef.current = es;
   };
+
+  // ── Live polling for latest job ──────────────────────────────────────────────
+  useEffect(() => {
+    const poll = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/jobs/latest`, { credentials: "include" });
+        if (!res.ok) return;
+        const data = await res.json();
+        const job = data.job;
+        if (!job) return;
+        // new job appeared
+        if (job.id !== lastJobIdRef.current) {
+          lastJobIdRef.current = job.id;
+          setActiveJob({
+            id: job.id,
+            prNumber: job.prNumber,
+            prTitle: job.prTitle || `PR #${job.prNumber}`,
+            repoFullName: job.repo?.fullName || ""
+          });
+          // reset live state for new job
+          setLiveCompleted(new Set());
+          setLiveRunning(null);
+          setLiveMessages({});
+          // mark webhook + queue as instantly done (they already finished by the time we poll)
+          setLiveCompleted(new Set(["webhook", "queue"]));
+          openSSEStream(job.id);
+        }
+      } catch (_) {}
+    };
+
+    poll();
+    const interval = setInterval(poll, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   // ── Render helpers ───────────────────────────────────────────────────────────
   const isNodeActive = (nodeId: string) => {

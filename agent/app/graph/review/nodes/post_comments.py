@@ -40,7 +40,8 @@ async def post_comments(state: ReviewState) -> ReviewState:
         comment_body += f"### `{filename}`\n\n"
         for c in comments:
             icon = severity_icons.get(c.severity, "⚠️")
-            comment_body += f"{icon} **Line {c.line}** — {c.comment}\n"
+            side_label = " (old)" if c.side == "LEFT" else ""
+            comment_body += f"{icon} **Line {c.line}{side_label}** — {c.comment}\n"
             if c.past_pr_number:
                 comment_body += f"  > Referenced from PR #{c.past_pr_number}\n"
             comment_body += f"  *Confidence: {c.confidence:.0%}*\n\n"
@@ -49,6 +50,7 @@ async def post_comments(state: ReviewState) -> ReviewState:
         {
             "path": c.filename,
             "line": c.line,
+            "side": c.side,  # "LEFT" or "RIGHT"
             "body": f"{severity_icons.get(c.severity, '⚠️')} **{c.severity.upper()}**: {c.comment}"
                     + (f"\n\n> Referenced from past PR #{c.past_pr_number}" if c.past_pr_number else "")
                     + f"\n*Confidence: {c.confidence:.0%}*"

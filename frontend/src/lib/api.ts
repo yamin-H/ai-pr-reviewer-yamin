@@ -12,7 +12,23 @@ import type {
   WeeklyDigest,
 } from "./types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+declare global {
+  interface Window {
+    __RUNTIME_CONFIG__?: {
+      apiUrl?: string;
+      apiUrlBrowser?: string;
+    };
+  }
+}
+
+export function getApiUrl(): string {
+  if (typeof window !== "undefined") {
+    return window.__RUNTIME_CONFIG__?.apiUrlBrowser || 
+           process.env.NEXT_PUBLIC_API_URL_BROWSER || 
+           "http://localhost:3000";
+  }
+  return process.env.NEXT_PUBLIC_API_URL || "http://api:3000";
+}
 
 class ApiError extends Error {
   constructor(
@@ -28,7 +44,10 @@ async function fetchApi<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
+  const base = getApiUrl();
+  const url = `${base}${path}`;
+
+  const res = await fetch(url, {
     ...options,
     credentials: "include",
     headers: {
@@ -38,63 +57,89 @@ async function fetchApi<T>(
   });
 
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    const errorMsg = (body as { error?: string }).error || res.statusText;
-    throw new ApiError(res.status, errorMsg);
+    let message = `API request failed: ${res.status} ${res.statusText}`;
+    try {
+      const data = await res.json();
+      if (data?.error) message = data.error;
+    } catch {
+      // ignore
+    }
+    throw new ApiError(res.status, message);
   }
 
-  return res.json() as Promise<T>;
+  return res.json();
 }
 
-export function getLoginUrl() {
-  return `${API_URL}/auth/github`;
+export function getLoginUrl(): string {
+  const base = getApiUrl();
+  return `${base}/auth/github`;
 }
 
-export function getInstallUrl() {
-  const appName = process.env.NEXT_PUBLIC_GITHUB_APP_NAME || "powerful-pr-agent";
-  return `https://github.com/apps/${appName}/installations/new`;
+export function getLogoutUrl(): string {
+  const base = getApiUrl();
+  return `${base}/auth/logout`;
 }
 
 export const api = {
   getMe: () => fetchApi<{ user: User }>("/auth/me"),
 
-  logout: () =>
-    fetchApi<{ success: boolean }>("/auth/logout", { method: "POST" }),
+  getOrgs: () =>
+    fetchApi<{ orgs: Array<{ id: string; login: string }> }>("/auth/orgs"),
+
+  switchOrg: (orgId: string) =>
+    fetchApi<{ success: boolean; org: { id: string; login: string } }>(
+      "/auth/switch-org",
+      {
+        method: "POST",
+        body: JSON.stringify({ orgId }),
+      },
+    ),
 
   getRepos: () => fetchApi<{ repos: Repo[] }>("/api/repos"),
 
-  syncRepo: (id: string) =>
-    fetchApi<{ success: boolean; stored_count: number; repo: Repo }>(`/api/repos/${id}/sync`, {
+  toggleRepo: (repoId: string, enabled: boolean) =>
+    fetchApi<{ repo: Repo }>(`/api/repos/${repoId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ enabled }),
+    }),
+
+  syncRepos: () =>
+    fetchApi<{ synced: number; repos: Repo[] }>("/api/repos/sync", {
       method: "POST",
     }),
 
-  syncRepoRules: (id: string) =>
-    fetchApi<{ success: boolean; customRulesCount: number; rules: string[]; repo: Repo }>(`/api/repos/${id}/sync-rules`, {
-      method: "POST",
+  getRepoRules: (repoId: string) =>
+    fetchApi<{ repoId: string; rules: string }>(`/api/repos/${repoId}/rules`),
+
+  saveRepoRules: (repoId: string, rules: string) =>
+    fetchApi<{ repoId: string; rules: string }>(`/api/repos/${repoId}/rules`, {
+      method: "PUT",
+      body: JSON.stringify({ rules }),
     }),
 
   getReviews: (params?: {
-    cursor?: string;
-    limit?: number;
     repoId?: string;
     status?: string;
+    page?: number;
+    limit?: number;
     from?: string;
     to?: string;
     search?: string;
   }) => {
     const query = new URLSearchParams();
-    if (params?.cursor) query.set("cursor", params.cursor);
-    if (params?.limit) query.set("limit", String(params.limit));
     if (params?.repoId && params.repoId !== "all") query.set("repoId", params.repoId);
     if (params?.status && params.status !== "all") query.set("status", params.status);
+    if (params?.page) query.set("page", params.page.toString());
+    if (params?.limit) query.set("limit", params.limit.toString());
     if (params?.from) query.set("from", params.from);
     if (params?.to) query.set("to", params.to);
     if (params?.search) query.set("search", params.search);
+
     const qs = query.toString();
-    return fetchApi<ReviewsResponse>(qs ? `/api/reviews?${qs}` : "/api/reviews");
+    return fetchApi<ReviewsResponse>(`/api/reviews${qs ? `?${qs}` : ""}`);
   },
 
-  getReviewsExportUrl: (params?: {
+  getExportCsvUrl: (params?: {
     repoId?: string;
     status?: string;
     from?: string;
@@ -108,14 +153,14 @@ export const api = {
     if (params?.to) query.set("to", params.to);
     if (params?.search) query.set("search", params.search);
     const qs = query.toString();
-    return `${API_URL}/api/reviews/export/csv${qs ? `?${qs}` : ""}`;
+    return `${getApiUrl()}/api/reviews/export/csv${qs ? `?${qs}` : ""}`;
   },
 
   getReview: (id: string) =>
     fetchApi<{ review: PRReview }>(`/api/reviews/${id}`),
 
   submitCommentFeedback: (reviewId: string, commentId: string, action: "approve" | "dismiss") =>
-    fetchApi<{ success: boolean; feedback: any }>(`/api/reviews/${reviewId}/comments/${commentId}/feedback`, {
+    fetchApi<{ success: boolean; feedback: Record<string, unknown> }>(`/api/reviews/${reviewId}/comments/${commentId}/feedback`, {
       method: "POST",
       body: JSON.stringify({ action }),
     }),
@@ -125,11 +170,16 @@ export const api = {
   getDigests: () =>
     fetchApi<{ digests: WeeklyDigest[] }>("/api/digest/preview"),
 
+  compileDigest: () =>
+    fetchApi<{ success: boolean; message: string; digest?: WeeklyDigest }>("/api/digest/compile", {
+      method: "POST",
+    }),
+
   checkInstallStatus: (login: string) =>
-    fetchApi<{ installed: boolean; installationId: number | null }>(`/auth/install/status?login=${login}`),
+    fetchApi<{ installed: boolean }>(`/auth/install/status?login=${encodeURIComponent(login)}`),
     
   checkOnboardStatus: (login: string) =>
-    fetchApi<{ count: number; status: string }>(`/auth/install/onboard-status?login=${login}`),
+    fetchApi<{ count: number; status: string }>(`/auth/install/onboard-status?login=${encodeURIComponent(login)}`),
 
   getSettings: () => fetchApi<SettingsData>("/api/settings"),
 
@@ -146,6 +196,14 @@ export const api = {
     }),
 
   getJobs: () => fetchApi<QueueStatusResponse>("/api/jobs"),
+
+  getDeadLetterJobs: () =>
+    fetchApi<{ jobs: Array<{ id: string; name?: string; failedReason?: string; timestamp?: number; data?: Record<string, unknown> }> }>("/api/jobs/dead-letter"),
+
+  replayDeadLetterJob: (jobId: string) =>
+    fetchApi<{ success: boolean; message: string }>(`/api/jobs/dead-letter/${jobId}/replay`, {
+      method: "POST",
+    }),
 
   getUsage: () => fetchApi<UsageData>("/api/usage"),
 

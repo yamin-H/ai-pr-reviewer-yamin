@@ -84,7 +84,7 @@ const NODES: PipelineNode[] = [
     icon: Layers,
     latency: "35ms",
     category: "analysis",
-    description: "Splits raw git unified diffs into semantic AST code chunks with surrounding context window headers.",
+    description: "Splits raw git unified diffs into structured code diff chunks with surrounding context window headers.",
     inputs: {
       raw_patch_bytes: "18.4 KB",
       max_chunk_tokens: 1500,
@@ -148,7 +148,7 @@ const NODES: PipelineNode[] = [
     icon: Sparkles,
     latency: "620ms",
     category: "synthesis",
-    description: "Groq llama-3.3-70b-versatile streaming inference with combined AST context, pgvector memory conventions, and custom rules.",
+    description: "Groq llama-3.3-70b-versatile streaming inference with combined diff context, pgvector memory conventions, and custom rules.",
     inputs: {
       model: "llama-3.3-70b-versatile",
       temperature: 0.1,

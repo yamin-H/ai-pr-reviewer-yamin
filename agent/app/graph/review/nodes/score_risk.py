@@ -1,7 +1,6 @@
 import re
 from app.graph.review.state import ReviewState
 from app.services.progress import report_progress
-from app.services.github import post_commit_status
 
 # Critical path patterns for security, payments, data, and infrastructure
 CRITICAL_PATTERNS = [
@@ -105,22 +104,6 @@ async def score_risk(state: ReviewState) -> ReviewState:
     }
 
     print(f"[Node score_risk] Assessed PR #{state.get('pr_number')}: {final_score}/100 ({risk_level})")
-
-    # Post GitHub Commit Status (Checks API) if head_sha is present
-    head_sha = state.get("head_sha")
-    repo = state.get("repo")
-    installation_id = state.get("installation_id")
-
-    if head_sha and repo:
-        desc = f"Risk Score: {final_score}/100 ({risk_level})"
-        await post_commit_status(
-            repo_name=repo,
-            sha=head_sha,
-            state=status_state,
-            description=desc,
-            context="Powerful AI / PR Risk",
-            installation_id=installation_id
-        )
 
     await report_progress(
         job_id,

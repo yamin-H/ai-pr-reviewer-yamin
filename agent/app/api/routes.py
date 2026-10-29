@@ -1,6 +1,7 @@
+import secrets
 from fastapi import APIRouter, Header, HTTPException, Depends
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, Field
+from typing import Literal, Optional
 from langchain_core.messages import HumanMessage, SystemMessage
 from app.services.llm import llm
 from app.services.memory import store_decision, search_memory
@@ -28,7 +29,10 @@ async def verify_internal_secret(x_internal_secret: Optional[str] = Header(None)
             detail="Internal service key is not configured on this server.",
         )
 
-    if not x_internal_secret or x_internal_secret != INTERNAL_SERVICE_KEY:
+    # Constant-time comparison avoids leaking how much of the secret matched.
+    if not x_internal_secret or not secrets.compare_digest(
+        x_internal_secret, INTERNAL_SERVICE_KEY
+    ):
         raise HTTPException(
             status_code=403,
             detail="Unauthorized internal service call.",
@@ -38,19 +42,20 @@ router = APIRouter(dependencies=[Depends(verify_internal_secret)])
 
 
 class ReviewRequest(BaseModel):
-    job_id: str
-    repo: str
-    pr_number: int
-    installation_id: int
+    job_id: str = Field(min_length=1, max_length=128)
+    repo: str = Field(min_length=1, max_length=255)
+    repo_id: str = Field(min_length=1, max_length=128)  # Prisma cuid for repo (used for memory search)
+    pr_number: int = Field(gt=0)
+    installation_id: int = Field(gt=0)
     confidence_threshold: Optional[float] = 0.5
     past_dismissal_rate: Optional[float] = 0.20
     head_sha: Optional[str] = None
 
 class OnboardRequest(BaseModel):
-    repo: str
-    org_id: str
-    installation_id: Optional[int] = None
-    months_back: int = 6
+    repo: str = Field(min_length=1, max_length=255)
+    org_id: str = Field(min_length=1, max_length=128)
+    installation_id: Optional[int] = Field(default=None, gt=0)
+    months_back: int = Field(default=6, ge=1, le=60)
 
 class DigestRequest(BaseModel):
     org_id: str
@@ -61,14 +66,14 @@ class DigestRequest(BaseModel):
     reviews: list[dict]
 
 class LearnRequest(BaseModel):
-    org_id: str
-    repo_id: str
-    pr_number: int
-    file_path: Optional[str] = None
-    line: Optional[int] = None
-    severity: Optional[str] = "warning"
-    comment: str
-    action: str  # "approve" or "dismiss"
+    org_id: str = Field(min_length=1, max_length=128)
+    repo_id: str = Field(min_length=1, max_length=128)
+    pr_number: int = Field(gt=0)
+    file_path: Optional[str] = Field(default=None, max_length=1024)
+    line: Optional[int] = Field(default=None, ge=0)
+    severity: Optional[str] = Field(default="warning", max_length=32)
+    comment: str = Field(min_length=1, max_length=10_000)
+    action: Literal["approve", "dismiss"]
 
 
 @router.post("/review")
@@ -78,6 +83,7 @@ async def review_pr(body: ReviewRequest):
     result = await review_graph.ainvoke({
         "job_id": body.job_id,
         "repo": body.repo,
+        "repo_id": body.repo_id,
         "pr_number": body.pr_number,
         "installation_id": body.installation_id,
         "confidence_threshold": body.confidence_threshold or 0.5,

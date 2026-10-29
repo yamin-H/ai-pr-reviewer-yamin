@@ -4,9 +4,9 @@ import { sendFeedbackToAgent } from '../services/agent.js'
 
 const router = Router()
 
-function escapeCsv(value: any): string {
+export function escapeCsv(value: any): string {
     if (value === null || value === undefined) return '""'
-    let str = String(value).trim()
+    let str = String(value)
     // Prevent spreadsheet formula injection
     if (/^[=+\-@\t\r]/.test(str)) {
         str = `'${str}`
@@ -141,7 +141,7 @@ router.get('/', async (req: Request, res: Response) => {
         const reviews = await prisma.pRReview.findMany({
             where,
             include: {
-                repo: true,
+                repo: { include: { org: true, _count: { select: { reviews: true, memoryEntries: true } } } },
                 comments: true
             },
             orderBy: { createdAt: 'desc' },
@@ -154,16 +154,38 @@ router.get('/', async (req: Request, res: Response) => {
                 : {})
         })
 
+        // Format reviews to match frontend types
+        const formattedReviews = reviews.map(review => ({
+            ...review,
+            repo: review.repo ? {
+                ...review.repo,
+                enabled: review.repo.enabled ?? true,
+                customRulesCount: review.repo.customRulesCount ?? 0,
+                _count: {
+                    reviews: review.repo._count?.reviews ?? 0,
+                    memoryEntries: review.repo._count?.memoryEntries ?? 0,
+                },
+                org: review.repo.org ? {
+                    ...review.repo.org,
+                    isInstalled: review.repo.org.isInstalled ?? true,
+                    reviewSensitivity: review.repo.org.reviewSensitivity ?? 0.5,
+                    triggerOnSync: review.repo.org.triggerOnSync ?? true,
+                    plan: review.repo.org.plan ?? 'free',
+                    monthlyReviewCount: review.repo.org.monthlyReviewCount ?? 0,
+                } : undefined
+            } : null
+        }))
+
         let nextCursor: string | null = null
-        if (reviews.length > take) {
-            reviews.pop()
-            nextCursor = reviews[reviews.length - 1].id
+        if (formattedReviews.length > take) {
+            formattedReviews.pop()
+            nextCursor = formattedReviews[formattedReviews.length - 1].id
         }
 
         const totalCount = await prisma.pRReview.count({ where })
 
         res.json({
-            reviews,
+            reviews: formattedReviews,
             nextCursor,
             totalCount
         })
@@ -182,7 +204,7 @@ router.get('/:id', async (req: Request, res: Response) => {
         const review = await prisma.pRReview.findUnique({
             where: { id },
             include: {
-                repo: true,
+                repo: { include: { org: true, _count: { select: { reviews: true, memoryEntries: true } } } },
                 comments: true,
                 feedbackActions: true
             }
@@ -195,7 +217,29 @@ router.get('/:id', async (req: Request, res: Response) => {
             return
         }
 
-        res.json({ review })
+        // Format repo to match frontend type
+        const formattedReview = {
+            ...review,
+            repo: review.repo ? {
+                ...review.repo,
+                enabled: review.repo.enabled ?? true,
+                customRulesCount: review.repo.customRulesCount ?? 0,
+                _count: {
+                    reviews: review.repo._count?.reviews ?? 0,
+                    memoryEntries: review.repo._count?.memoryEntries ?? 0,
+                },
+                org: review.repo.org ? {
+                    ...review.repo.org,
+                    isInstalled: review.repo.org.isInstalled ?? true,
+                    reviewSensitivity: review.repo.org.reviewSensitivity ?? 0.5,
+                    triggerOnSync: review.repo.org.triggerOnSync ?? true,
+                    plan: review.repo.org.plan ?? 'free',
+                    monthlyReviewCount: review.repo.org.monthlyReviewCount ?? 0,
+                } : undefined
+            } : null
+        }
+
+        res.json({ review: formattedReview })
     } catch (err) {
         console.error(err)
         res.status(500).json({ error: 'Failed to fetch review' })

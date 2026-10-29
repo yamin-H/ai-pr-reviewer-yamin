@@ -1,13 +1,17 @@
-import { Worker } from 'bullmq'
+import { Worker, Job } from 'bullmq'
 import connection from '../lib/redis.js'
 import { triggerReview } from '../services/agent.js'
 import { ReviewJobData } from '../queues/reviewQueue.js'
 import { prisma } from '../lib/prisma.js'
 import { createCommitStatus } from '../lib/octokit.js'
+import { Queue } from 'bullmq'
+
+// Dead letter queue for failed reviews
+const deadLetterQueue = new Queue('review-dead-letter', { connection })
 
 const worker = new Worker<ReviewJobData>(
     'review-queue',
-    async (job) => {
+    async (job: Job<ReviewJobData>) => {
         console.log(`Processing review job ${job.id} for PR #${job.data.pr_number}`)
 
         // check if review record exists before proceeding
@@ -31,15 +35,39 @@ const worker = new Worker<ReviewJobData>(
         })
         const pastDismissalRate = totalFeedback > 0 ? (dismissedFeedback / totalFeedback) : 0.2
 
-        const result = await triggerReview({
-            job_id: job.data.job_id,
-            repo: job.data.repo,
-            pr_number: job.data.pr_number,
-            installation_id: job.data.installation_id,
-            confidence_threshold: reviewRecord.org?.reviewSensitivity ?? 0.5,
-            past_dismissal_rate: pastDismissalRate,
-            head_sha: job.data.head_sha
-        })
+        let result: any
+        try {
+            result = await triggerReview({
+                job_id: job.data.job_id,
+                repo: job.data.repo,
+                repo_id: reviewRecord.repoId,  // Prisma cuid for memory search
+                pr_number: job.data.pr_number,
+                installation_id: job.data.installation_id,
+                confidence_threshold: reviewRecord.org?.reviewSensitivity ?? 0.5,
+                past_dismissal_rate: pastDismissalRate,
+                head_sha: job.data.head_sha
+            })
+        } catch (agentError: any) {
+            // Agent call failed after retries - send to dead letter queue
+            console.error(`Agent call failed for job ${job.id} after retries:`, agentError.message)
+            
+            await prisma.pRReview.update({
+                where: { id: job.data.job_id },
+                data: { 
+                    status: 'failed'
+                }
+            }).catch(console.error)
+
+            // Add to dead letter queue for manual inspection/replay
+            await deadLetterQueue.add('failed-review', {
+                ...job.data,
+                failedAt: new Date().toISOString(),
+                error: agentError.message,
+                attemptsMade: job.attemptsMade
+            })
+
+            throw agentError // Re-throw to let BullMQ handle retry logic
+        }
 
         if (result.comments && result.comments.length > 0) {
             await prisma.reviewComment.createMany({
@@ -131,18 +159,32 @@ const worker = new Worker<ReviewJobData>(
         console.log(`✓ Review completed for PR #${job.data.pr_number} (${result.total_tokens || 0} tokens in ${durationMs}ms)`)
         return result
     },
-    { connection, concurrency: 3, lockDuration: 300000, stalledInterval: 60000 }
+    { 
+        connection, 
+        concurrency: 3, 
+        lockDuration: 180000, // 3 minutes - matches new 2 min timeout + buffer
+        stalledInterval: 60000,
+        maxStalledCount: 2
+    }
 );
 
-worker.on('failed', async (job: any, err: any) => {
-    console.error(`Job ${job?.id} failed:`, err.message)
+worker.on('failed', async (job: Job<ReviewJobData> | undefined, err: Error) => {
+    console.error(`Job ${job?.id} failed permanently:`, err.message)
 
     if (job?.data.job_id) {
         await prisma.pRReview.updateMany({
             where: { id: job.data.job_id },
             data: { status: 'failed' }
         }).catch(console.error)
-        // updateMany never throws if record not found — unlike update
+        
+        // Add to dead letter queue for manual replay
+        await deadLetterQueue.add('failed-review', {
+            ...job.data,
+            failedAt: new Date().toISOString(),
+            error: err.message,
+            attemptsMade: job.attemptsMade,
+            finalFailure: true
+        }).catch(console.error)
     }
 });
 

@@ -1,4 +1,16 @@
 import { Request, Response, NextFunction } from 'express'
+import crypto from 'crypto'
+
+/**
+ * Constant-time comparison of two secrets. Length differences are rejected
+ * without short-circuit timing leaks that reveal how much of a key matched.
+ */
+function secretsMatch(provided: string, expected: string): boolean {
+    const providedBuf = Buffer.from(provided)
+    const expectedBuf = Buffer.from(expected)
+    if (providedBuf.length !== expectedBuf.length) return false
+    return crypto.timingSafeEqual(providedBuf, expectedBuf)
+}
 
 /**
  * Assert that INTERNAL_SERVICE_KEY is configured.
@@ -42,7 +54,7 @@ export function requireInternalAuth(req: Request, res: Response, next: NextFunct
             ? req.headers['authorization'].slice(7)
             : undefined)
 
-    if (!providedKey || providedKey !== expectedKey) {
+    if (typeof providedKey !== 'string' || !secretsMatch(providedKey, expectedKey)) {
         res.status(403).json({ error: 'Unauthorized internal service request.' })
         return
     }

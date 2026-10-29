@@ -23,8 +23,6 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme/theme-provider";
 import { getLoginUrl, api } from "@/lib/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-
 const GITHUB_APP_NAME = process.env.NEXT_PUBLIC_GITHUB_APP_NAME || "powerful-pr-agent";
 
 function InstallPageContent() {
@@ -108,8 +106,7 @@ function InstallPageContent() {
     setIsChecking(true);
     setCheckError(null);
     try {
-      const res = await fetch(`${API_URL}/auth/install/status?login=${login}`);
-      const data = await res.json();
+      const data = await api.checkInstallStatus(login);
       if (data.installed) {
         // Now redirect to OAuth sign in
         window.location.href = getLoginUrl();

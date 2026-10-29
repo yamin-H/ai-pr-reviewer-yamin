@@ -9,20 +9,23 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { api, getLoginUrl } from "@/lib/api";
-import type { User } from "@/lib/types";
+import type { User, UserOrg } from "@/lib/types";
 
 interface AuthContextValue {
   user: User | null;
+  userOrgs: UserOrg[];
   loading: boolean;
   login: () => void;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
+  switchOrg: (orgId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [userOrgs, setUserOrgs] = useState<UserOrg[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -30,8 +33,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { user: sessionUser } = await api.getMe();
       setUser(sessionUser);
+      // Also fetch user's available orgs
+      try {
+        const { orgs } = await api.getUserOrgs();
+        setUserOrgs(orgs);
+      } catch {}
     } catch {
       setUser(null);
+      setUserOrgs([]);
     } finally {
       setLoading(false);
     }
@@ -48,11 +57,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     await api.logout();
     setUser(null);
+    setUserOrgs([]);
     router.push("/");
   };
 
+  const switchOrg = async (orgId: string) => {
+    await api.switchOrg(orgId);
+    await refresh();
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, refresh }}>
+    <AuthContext.Provider value={{ user, userOrgs, loading, login, logout, refresh, switchOrg }}>
       {children}
     </AuthContext.Provider>
   );

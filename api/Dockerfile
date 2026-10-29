@@ -30,6 +30,9 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/src/generated ./src/generated
 
+# Run as the unprivileged user that ships with the official Node image.
+USER node
+
 EXPOSE 3000
 
 CMD ["node", "dist/app.js"]

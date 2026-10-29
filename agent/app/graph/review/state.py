@@ -9,10 +9,12 @@ class ReviewComment:
     comment: str
     confidence: float
     past_pr_number: Optional[int] = None
+    side: str = "RIGHT"  # "LEFT" for old file (deletions), "RIGHT" for new file (additions)
 
 class ReviewState(TypedDict, total=False):
     job_id: str
     repo: str
+    repo_id: str  # Prisma cuid for repo (used for memory search)
     pr_number: int
     installation_id: int
     changed_files: List[dict]      

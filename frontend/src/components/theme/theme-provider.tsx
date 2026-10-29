@@ -12,6 +12,20 @@ interface ThemeContextType {
   setTheme: (theme: Theme) => void;
 }
 
+function applyTheme(t: Theme) {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  if (t === "light") {
+    root.classList.remove("dark");
+    root.classList.add("light");
+    root.style.colorScheme = "light";
+  } else {
+    root.classList.remove("light");
+    root.classList.add("dark");
+    root.style.colorScheme = "dark";
+  }
+}
+
 const ThemeContext = createContext<ThemeContextType>({
   theme: "light",
   toggleTheme: () => {},
@@ -20,10 +34,8 @@ const ThemeContext = createContext<ThemeContextType>({
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("light");
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     const saved = localStorage.getItem("powerful_theme") as Theme | null;
     if (saved === "light" || saved === "dark") {
       setThemeState(saved);
@@ -33,20 +45,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const applyTheme = (t: Theme) => {
-    const root = document.documentElement;
-    if (t === "light") {
-      root.classList.remove("dark");
-      root.classList.add("light");
-      root.style.colorScheme = "light";
-    } else {
-      root.classList.remove("light");
-      root.classList.add("dark");
-      root.style.colorScheme = "dark";
-    }
-  };
-
   const setTheme = (newTheme: Theme) => {
+    if (typeof document === "undefined") return;
     const root = document.documentElement;
     root.classList.add("theme-transitioning");
 
@@ -56,11 +56,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       applyTheme(newTheme);
     };
 
-    const doc = typeof document !== "undefined" ? (document as Document & {
+    const doc = document as Document & {
       startViewTransition?: (callback: () => void | Promise<void>) => unknown;
-    }) : null;
+    };
 
-    if (doc && typeof doc.startViewTransition === "function") {
+    if (typeof doc.startViewTransition === "function") {
       doc.startViewTransition(() => {
         commit();
       });

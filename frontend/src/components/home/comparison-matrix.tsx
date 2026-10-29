@@ -33,12 +33,12 @@ const COMPARISONS: ComparisonRow[] = [
   {
     capability: "Pipeline Architecture",
     genericBots: "Single prompt pass. Subject to token truncations, hallucinations, and mid-file context loss.",
-    powerful: "Linear LangGraph state machine with AST chunking, vector similarity, and isolated node execution.",
+    powerful: "Linear LangGraph state machine with intelligent diff chunking, vector similarity, and isolated node execution.",
   },
   {
     capability: "Latency & Speed",
     genericBots: "30s to 2min waiting on slow non-specialized reasoning models.",
-    powerful: "Sub-second AST chunking + Groq llama-3.3-70b-versatile inference in under 1.5 seconds.",
+    powerful: "Fast diff chunking + Groq llama-3.3-70b-versatile inference in under 1.5 seconds.",
   },
 ];
 

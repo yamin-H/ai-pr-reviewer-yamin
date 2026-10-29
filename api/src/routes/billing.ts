@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express'
+import crypto from 'crypto'
 import { prisma } from '../lib/prisma.js'
 import { checkAndResetOrgQuota } from '../lib/cron.js'
 
@@ -13,7 +14,7 @@ export const PLAN_CONFIG = {
         features: [
             '50 PR reviews / month',
             'Standard AI review models (Llama 3.3 70B)',
-            'Base AST and heuristics scanning',
+            'Base heuristics and pattern scanning',
             'Standard review latency',
             'Community issue support',
         ],
@@ -193,18 +194,68 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
     }
 })
 
+/**
+ * Verify an optional HMAC-SHA256 signature on the billing webhook.
+ *
+ * When BILLING_WEBHOOK_SECRET is configured the request must carry
+ * `x-billing-signature: sha256=<hex>`. When it is not configured we preserve
+ * the previous behaviour (useful for local demo mode) but log a warning so the
+ * gap is visible in production deployments.
+ */
+function verifyBillingWebhookSignature(req: Request, res: Response): boolean {
+    const secret = process.env.BILLING_WEBHOOK_SECRET
+
+    if (!secret) {
+        if (process.env.NODE_ENV === 'production') {
+            console.error('[billing-webhook] BILLING_WEBHOOK_SECRET is not configured on the production server')
+            res.status(500).json({ error: 'Billing webhook secret not configured' })
+            return false
+        }
+        console.warn('[billing-webhook] Development mode: allowing unsigned billing event for local testing.')
+        return true
+    }
+
+    const signature = req.headers['x-billing-signature']
+    const rawBody: Buffer | undefined = (req as any).rawBody
+
+    if (typeof signature !== 'string' || !signature.startsWith('sha256=') || !rawBody) {
+        res.status(401).json({ error: 'Missing or malformed billing webhook signature' })
+        return false
+    }
+
+    const expected = 'sha256=' + crypto
+        .createHmac('sha256', secret)
+        .update(rawBody)
+        .digest('hex')
+
+    const providedBuf = Buffer.from(signature)
+    const expectedBuf = Buffer.from(expected)
+
+    if (
+        providedBuf.length !== expectedBuf.length ||
+        !crypto.timingSafeEqual(providedBuf, expectedBuf)
+    ) {
+        res.status(401).json({ error: 'Invalid billing webhook signature' })
+        return false
+    }
+
+    return true
+}
+
 // POST /api/billing/webhook or /billing/webhook — simulated payment webhook event receiver
 export const billingWebhookHandler = async (req: Request, res: Response) => {
     try {
+        if (!verifyBillingWebhookSignature(req, res)) return
+
         const event = req.body
-        const eventType = event?.type || 'unknown'
+        const eventType = typeof event?.type === 'string' ? event.type : 'unknown'
 
         console.log(`[billing-webhook] Received billing event: ${eventType}`)
 
         switch (eventType) {
             case 'checkout.session.completed': {
                 const orgId = event?.data?.object?.client_reference_id
-                if (orgId) {
+                if (typeof orgId === 'string' && orgId) {
                     await prisma.organization.update({
                         where: { id: orgId },
                         data: { plan: 'pro', planExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) }
@@ -214,7 +265,7 @@ export const billingWebhookHandler = async (req: Request, res: Response) => {
             }
             case 'customer.subscription.deleted': {
                 const orgId = event?.data?.object?.client_reference_id
-                if (orgId) {
+                if (typeof orgId === 'string' && orgId) {
                     await prisma.organization.update({
                         where: { id: orgId },
                         data: { plan: 'free', planExpiresAt: null }

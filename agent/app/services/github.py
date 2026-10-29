@@ -1,6 +1,8 @@
 from github import Github
-from app.core.config import NODE_API_URL, INTERNAL_SERVICE_KEY
-import httpx
+from app.services.http_client import get_installation_token, invalidate_token_cache
+import logging
+
+logger = logging.getLogger(__name__)
 
 async def get_github_client(installation_id: int = None) -> Github:
     """
@@ -9,19 +11,11 @@ async def get_github_client(installation_id: int = None) -> Github:
     """
     if installation_id:
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    f"{NODE_API_URL}/internal/installation-token",
-                    json={"installation_id": installation_id},
-                    headers={"x-internal-secret": INTERNAL_SERVICE_KEY}
-                )
-                data = response.json()
-                token = data.get("token")
-                if token:
-                    return Github(token)
+            token = await get_installation_token(installation_id)
+            return Github(token)
 
         except Exception as e:
-            print(f"Failed to get installation token: {e}")
+            logger.error(f"Failed to get installation token: {e}")
             raise Exception("Cannot fetch PR diff without a valid GitHub App installation token.")
 
     raise Exception("Installation ID is required.")
@@ -70,10 +64,10 @@ async def post_commit_status(
             context=context,
             target_url=target_url or ""
         )
-        print(f"[github] Posted commit status ({state}) to {repo_name}@{sha[:7]}: {description}")
+        logger.info(f"[github] Posted commit status ({state}) to {repo_name}@{sha[:7]}: {description}")
         return True
     except Exception as e:
-        print(f"[github] Warning: Failed to post commit status: {e}")
+        logger.warning(f"[github] Warning: Failed to post commit status: {e}")
         return False
 
 
@@ -111,10 +105,14 @@ async def post_pull_request_review(
         formatted_inline = []
         if inline_comments:
             for c in inline_comments:
+                # Use side from comment if provided, default to RIGHT
+                side = c.get("side", "RIGHT")
+                if side not in ("LEFT", "RIGHT"):
+                    side = "RIGHT"
                 formatted_inline.append({
                     "path": c.get("path") or c.get("filename"),
                     "line": int(c.get("line", 1)),
-                    "side": "RIGHT",
+                    "side": side,
                     "body": c.get("body") or c.get("comment", "")
                 })
 
@@ -133,6 +131,6 @@ async def post_pull_request_review(
             )
         return review.html_url
     except Exception as e:
-        print(f"GitHub create_review failed ({e}); falling back to PR issue comment")
+        logger.warning(f"GitHub create_review failed ({e}); falling back to PR issue comment")
         posted = pr.create_issue_comment(body)
         return posted.html_url

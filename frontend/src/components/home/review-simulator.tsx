@@ -118,7 +118,7 @@ const SCENARIOS: Scenario[] = [
 ];
 
 const STEPS = [
-  { label: "Diff Chunking", desc: "AST syntax trees" },
+  { label: "Diff Chunking", desc: "Git unified diffs" },
   { label: "Config Loading", desc: "Reading .powerful.yml" },
   { label: "Memory Retrieval", desc: "pgvector similarity" },
   { label: "Risk Evaluation", desc: "Multi-factor formula" },
@@ -456,7 +456,7 @@ export function ReviewSimulator() {
           </div>
 
           <p className="text-[12px] text-[#4B5563] dark:text-zinc-400 leading-relaxed">
-            Every approved feedback loop writes vector embeddings to PostgreSQL. When future PRs touch similar AST structures, the agent injects these exact rules.
+            Every approved feedback loop writes vector embeddings to PostgreSQL. When future PRs touch similar code patterns, the agent injects these exact rules.
           </p>
 
           <div className="space-y-2">

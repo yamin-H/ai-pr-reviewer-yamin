@@ -3,6 +3,14 @@ export interface User {
   githubId: string;
   login: string;
   avatarUrl: string;
+  orgId?: string; // Current active organization
+}
+
+export interface UserOrg {
+  id: string;
+  login: string;
+  githubId: string;
+  installationId: number;
 }
 
 export interface Organization {

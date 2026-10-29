@@ -4,16 +4,17 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/auth-provider";
 import { Sidebar } from "@/components/layout/sidebar";
-import { Sparkles, Terminal } from "lucide-react";
+import { Sparkles, Terminal, ChevronDown, Building2 } from "lucide-react";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user, loading } = useAuth();
+  const { user, userOrgs, loading, switchOrg } = useAuth();
   const router = useRouter();
   const [isClientMock, setIsClientMock] = useState(false);
+  const [orgMenuOpen, setOrgMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -40,6 +41,11 @@ export default function DashboardLayout({
   if (!user) {
     return null; // Will redirect in useEffect
   }
+
+  const handleOrgSwitch = async (orgId: string) => {
+    await switchOrg(orgId);
+    setOrgMenuOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#080C14] text-[#0F0F0F] dark:text-zinc-100 bg-dot-grid relative transition-colors duration-300">
@@ -84,6 +90,38 @@ export default function DashboardLayout({
               <span className="text-zinc-300 dark:text-zinc-600">|</span>
               <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400">Live</span>
             </div>
+
+            {/* Organization Switcher */}
+            {userOrgs.length > 1 && (
+              <div className="relative">
+                <button
+                  onClick={() => setOrgMenuOpen(!orgMenuOpen)}
+                  className="flex items-center gap-1.5 rounded-xl bg-zinc-100 dark:bg-white/[0.03] border border-zinc-200 dark:border-white/[0.07] px-3 py-1.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-white/[0.05] transition-colors"
+                >
+                  <Building2 className="h-3.5 w-3.5" />
+                  <span>{userOrgs.find(o => o.id === user?.orgId)?.login || 'Select Org'}</span>
+                  <ChevronDown className={`h-3.5 w-3.5 transition-transform ${orgMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {orgMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#0B0F1A] shadow-lg py-1 z-50 animate-in fade-in-0 slide-in-from-top-2 duration-150">
+                    {userOrgs.map((org) => (
+                      <button
+                        key={org.id}
+                        onClick={() => handleOrgSwitch(org.id)}
+                        className={`w-full px-3 py-2 text-left text-sm font-medium transition-colors ${
+                          org.id === user?.orgId
+                            ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300'
+                            : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/[0.03]'
+                        }`}
+                      >
+                        {org.login}
+                        {org.id === user?.orgId && <span className="ml-2 text-xs text-emerald-600 dark:text-emerald-400">(active)</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             <a
               href="https://github.com/yamin-H/ai-pr-reviewer-yamin"

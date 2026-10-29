@@ -1,11 +1,11 @@
 # 🤖 AI PR Review Agent
 
-[![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-20-green?logo=node.js)](https://nodejs.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
-[![LangGraph](https://img.shields.io/badge/LangGraph-0.0.60-blue)](https://github.com/langchain-ai/langgraph)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.139-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
+[![LangGraph](https://img.shields.io/badge/LangGraph-1.2-blue)](https://github.com/langchain-ai/langgraph)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16%20+%20pgvector-336791?logo=postgresql)](https://github.com/pgvector/pgvector)
-[![BullMQ](https://img.shields.io/badge/BullMQ-5.7-red?logo=redis)](https://bullmq.io/)
+[![BullMQ](https://img.shields.io/badge/BullMQ-5.80-red?logo=redis)](https://bullmq.io/)
 [![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
 An autonomous, production-grade Pull Request Review engine that integrates directly into GitHub workflows. Combining a Next.js real-time analytics dashboard, a resilient Node.js API orchestrator, and a stateful Python LangGraph AI agent, this system reviews diffs with true inline comments and **continuously adapts to your engineering team's conventions through vector similarity search (RAG)**.
@@ -83,7 +83,7 @@ flowchart TD
 ## 🚀 Key Features
 
 * **True GitHub Pull Request Reviews**: Submits reviews directly via GitHub's Pull Request Review API (`create_review`) featuring precise inline diff annotations (`path`, `line`, `side`, and formatted markdown). Automatically approves clean PRs, adds comments for suggestions, and requests changes when critical errors or vulnerabilities are detected.
-* **Continuous Team Learning (RAG)**: Learns from your team's feedback. When developers approve or dismiss AI suggestions in the dashboard, decisions are embedded into a 384-dimensional vector space (`all-MiniLM-L6-v2`) in `pgvector` and recalled on future PRs.
+* **Continuous Team Learning (RAG)**: Learns from your team's feedback. When developers approve or dismiss AI suggestions in the dashboard, decisions are embedded into a 384-dimensional vector space (`BAAI/bge-small-en-v1.5`) in `pgvector` and recalled on future PRs.
 * **Enterprise Multi-Tenancy**: Complete tenant isolation across organizations. User sessions, repositories, review records, weekly digests, and vector memories are scoped strictly to the authenticated organization.
 * **Live SSE Pipeline Visualizer**: Real-time visualization of the AI agent's internal reasoning nodes (diff fetching, chunking, memory recall, inference, review submission) streamed to the dashboard via Server-Sent Events.
 * **On-Demand Repository Onboarding**: One-click historical PR scanner that analyzes past PR discussions and seeds the vector memory bank with established team conventions.
@@ -107,7 +107,7 @@ sequenceDiagram
     Dashboard->>API: POST /api/reviews/:id/comments/:id/feedback
     API->>DB: Record FeedbackAction
     API->>Agent: POST /memory/learn (internal secret authenticated)
-    Agent->>Agent: Generate 384-dim embedding (sentence-transformers)
+    Agent->>Agent: Generate 384-dim embedding (fastembed)
     Agent->>DB: Store MemoryEntry with vector embedding
 
     Note over Dev,DB: 2. Subsequent PR Review Recall
@@ -117,7 +117,7 @@ sequenceDiagram
     Agent->>Dev: Posts review respecting established conventions
 ```
 
-1. **Embedding Generation**: When feedback is recorded, the Python agent embeds the decision content using `all-MiniLM-L6-v2`.
+1. **Embedding Generation**: When feedback is recorded, the Python agent embeds the decision content using `BAAI/bge-small-en-v1.5` via `fastembed`.
 2. **Vector Storage**: The entry is stored in the `MemoryEntry` table with its 384-dimensional embedding, scoped by `orgId` and `repoId`.
 3. **Similarity Search**: On future PRs, code diff hunks are compared against past decisions using cosine distance (`embedding <=> query_vector`).
 4. **Context Injection**: Relevant decisions are fed directly into the LLM system prompt, eliminating false positives and enforcing team-specific standards.

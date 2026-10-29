@@ -7,9 +7,10 @@ async def search_memory_for_chunks(state: ReviewState) -> ReviewState:
     await report_progress(state['job_id'], 'search_memory', 'running', f"Searching team memory bank for {len(state['chunks'])} code chunks...")
 
     chunks_with_memory = []
+    repo_id = state.get('repo_id') or state['repo']  # Fallback to repo full_name
     for chunk in state['chunks']:
         results = await search_memory(
-            repo_id=state['repo'],
+            repo_id=repo_id,
             query=chunk['content'],
             limit=3
         )

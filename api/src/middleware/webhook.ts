@@ -26,17 +26,17 @@ export function verifyWebhookSignature(
       .update(rawBody)
       .digest('hex')
 
-    const sigBuffer = Buffer.from(signature)
-    const expectedBuffer = Buffer.from(expected)
+      const sigBuffer = Buffer.from(signature);
+      const expectedBuffer = Buffer.from(expected);
 
-    if (sigBuffer.length !== expectedBuffer.length || !crypto.timingSafeEqual(sigBuffer, expectedBuffer)) {
-      res.status(401).json({ error: 'Invalid signature' })
-      return
-    }
+      if (sigBuffer.length !== expectedBuffer.length || !crypto.timingSafeEqual(sigBuffer, expectedBuffer)) {
+          res.status(401).json({ error: 'Invalid signature' })
+          return
+      };
 
-    next()
-  } catch (err) {
-    console.error('Webhook signature verification error:', err)
-    res.status(401).json({ error: 'Invalid signature verification' })
-  }
-}
+      next();
+    } catch (err) {
+      console.error('Webhook signature verification error:', err)
+      res.status(401).json({ error: 'Invalid signature verification' });
+    };
+};

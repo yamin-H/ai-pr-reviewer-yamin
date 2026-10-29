@@ -8,7 +8,7 @@ import reviewRoutes from './routes/review.js'
 import memoryRoutes from './routes/memory.js'
 import digestRoutes from './routes/digest.js'
 import authRoutes from './routes/auth.js'
-import internalRoutes, { handlePipelineStream } from './routes/internal.js'
+import internalRoutes, { handlePipelineStream, authorizePipelineStream } from './routes/internal.js'
 import { requireAuth } from './middleware/auth.js'
 import { assertInternalKeyConfigured } from './middleware/internalAuth.js'
 import { startCronJobs } from './lib/cron.js'
@@ -37,21 +37,16 @@ assertInternalKeyConfigured()
 // ---------------------------------------------------------------------------
 // Rate limiters
 // Three tiers, applied per route group before handlers are registered.
-// Note: these are in-process counters — under horizontal scaling each replica
-// enforces its own limit (effective limit = N × window max). A Redis store
-// (rate-limit-redis) can be added later for exact cross-replica enforcement.
 // ---------------------------------------------------------------------------
 
-/** Auth endpoints — strict. Protects against brute-force OAuth abuse. */
 const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
+    windowMs: 15 * 60 * 1000, 
     max: 20,
-    standardHeaders: true,   // Return rate limit info in RateLimit-* headers
+    standardHeaders: true,  
     legacyHeaders: false,
     message: { error: 'Too many authentication requests. Please try again later.' }
 })
 
-/** General API — moderate. Generous enough for normal usage, blocks automated abuse. */
 const apiLimiter = rateLimit({
     windowMs: 60 * 1000, // 1 minute
     max: 200,
@@ -60,39 +55,117 @@ const apiLimiter = rateLimit({
     message: { error: 'Too many requests. Please slow down.' }
 })
 
-/** Webhooks — generous. GitHub delivers in bursts from a small set of IPs. */
 const webhookLimiter = rateLimit({
-    windowMs: 60 * 1000, // 1 minute
+    windowMs: 60 * 1000, 
     max: 300,
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: 'Webhook rate limit exceeded.' }
 })
 
-// Validate required secrets before registering routes or binding the port.
-// If any required variable is missing the process throws and exits with a
-// non-zero code, making the misconfiguration immediately visible in logs
-// and container orchestrators (Docker, Kubernetes, Render, etc.).
-// ---------------------------------------------------------------------------
-
 const app = express()
 const PORT = process.env.PORT || 3000
 
+// Do not advertise the server implementation.
+app.disable('x-powered-by')
+
+// Baseline security headers.
+app.use((_req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff')
+    res.setHeader('X-Frame-Options', 'DENY')
+    res.setHeader('Referrer-Policy', 'no-referrer')
+    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()')
+    if (process.env.NODE_ENV === 'production') {
+        res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+    }
+    next()
+})
+
 app.use('/webhooks', express.raw({ type: 'application/json' }))
-app.use(express.json())
-app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3001',
-    credentials: true
+app.use(express.json({
+    // Retain the exact bytes so webhook handlers can verify HMAC signatures
+    // over the raw request body rather than a re-serialized object.
+    verify: (req, _res, buf) => {
+        ;(req as any).rawBody = Buffer.from(buf)
+    }
 }))
 
-// Route registration — rate limiters applied per group
+// CORS configuration supporting multiple origins (local development + production + preview deployments)
+const allowedOrigins = Array.from(new Set([
+    process.env.FRONTEND_URL,
+    'http://localhost:3001',
+    'http://127.0.0.1:3001',
+].filter(Boolean) as string[]))
+
+app.use(cors({
+    origin: (origin, callback) => {
+        // Allow requests with no origin (mobile apps, curl, etc.)
+        if (!origin) return callback(null, true)
+        
+        // Check against allowed origins
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true)
+        }
+        
+        // In production, allow Vercel preview deployments (subdomains of production domain)
+        if (process.env.NODE_ENV === 'production' && process.env.FRONTEND_URL) {
+            try {
+                const prodUrl = new URL(process.env.FRONTEND_URL)
+                const requestUrl = new URL(origin)
+                // Allow same domain or subdomains
+                if (requestUrl.hostname === prodUrl.hostname || 
+                    requestUrl.hostname.endsWith('.' + prodUrl.hostname)) {
+                    return callback(null, true)
+                }
+            } catch {}
+        }
+        
+        callback(new Error('Not allowed by CORS'))
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['Set-Cookie']
+}))
+
 app.use('/webhooks', webhookLimiter, webhookRoutes)
 app.use('/auth',     authLimiter,    authRoutes)
-app.use('/internal', internalRoutes)  // protected by x-internal-secret, not rate-limited
+app.use('/internal', internalRoutes) 
 
-app.get('/health', (_req, res) => {
-    res.json({ status: 'ok', service: 'pr-review-agent-api' })
-})
+app.get('/health', async (_req, res) => {
+    const checks = {
+      database: 'unknown',
+      redis: 'unknown',
+    }
+
+    // Check database
+    try {
+      const { prisma } = await import('./lib/prisma.js')
+      await prisma.$queryRaw`SELECT 1`
+      checks.database = 'ok'
+    } catch {
+      checks.database = 'failed'
+    }
+
+    // Check Redis
+    try {
+      const { default: redis } = await import('./lib/redis.js')
+      await redis.ping()
+      checks.redis = 'ok'
+    } catch {
+      checks.redis = 'failed'
+    }
+
+    const healthy = checks.database === 'ok' && checks.redis === 'ok'
+    const statusCode = healthy ? 200 : 503
+
+    res.status(statusCode).json({
+      status: healthy ? 'ok' : 'degraded',
+      service: 'pr-review-agent-api',
+      checks,
+      timestamp: new Date().toISOString()
+    })
+  })
 
 app.post('/billing/webhook', webhookLimiter, billingWebhookHandler)
 app.use('/api/repos',    apiLimiter, requireAuth, repoRoutes)
@@ -103,7 +176,13 @@ app.use('/api/jobs',     apiLimiter, requireAuth, jobRoutes)
 app.use('/api/settings', apiLimiter, requireAuth, settingsRoutes)
 app.use('/api/usage',    apiLimiter, requireAuth, usageRoutes)
 app.use('/api/billing',  apiLimiter, requireAuth, billingRoutes)
-app.get('/api/pipeline/stream/:job_id', handlePipelineStream)
+app.get(
+    '/api/pipeline/stream/:job_id',
+    apiLimiter,
+    requireAuth,
+    authorizePipelineStream,
+    handlePipelineStream
+)
 
 app.listen(PORT, () => {
     console.log(`API server running on port ${PORT}`)
@@ -112,4 +191,3 @@ app.listen(PORT, () => {
 startCronJobs()
 
 export default app
-

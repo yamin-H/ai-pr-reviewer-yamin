@@ -1,9 +1,10 @@
 from contextlib import asynccontextmanager
+import httpx
 
 from fastapi import FastAPI
 
 from app.api.routes import router
-from app.core.config import validate_required_env
+from app.core.config import validate_required_env, NODE_API_URL, REDIS_URL
 
 
 @asynccontextmanager
@@ -32,4 +33,34 @@ app.include_router(router)
 
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+    checks = {
+        "redis": "unknown",
+        "api": "unknown",
+    }
+
+    # Check Redis
+    try:
+        import redis.asyncio as redis
+        client = redis.from_url(REDIS_URL, socket_connect_timeout=2, socket_timeout=2)
+        await client.ping()
+        await client.close()
+        checks["redis"] = "ok"
+    except Exception:
+        checks["redis"] = "failed"
+
+    # Check API connectivity
+    try:
+        async with httpx.AsyncClient(timeout=2.0) as client:
+            response = await client.get(f"{NODE_API_URL}/health")
+            if response.status_code == 200:
+                checks["api"] = "ok"
+            else:
+                checks["api"] = "degraded"
+    except Exception:
+        checks["api"] = "failed"
+
+    healthy = all(v == "ok" for v in checks.values())
+    return {
+        "status": "ok" if healthy else "degraded",
+        "checks": checks,
+    }

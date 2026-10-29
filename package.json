@@ -1,0 +1,23 @@
+{
+  "name": "powerful",
+  "version": "1.0.0",
+  "description": "[![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)](https://nextjs.org/) [![Node.js](https://img.shields.io/badge/Node.js-20-green?logo=node.js)](https://nodejs.org/) [![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?logo=fastapi)](https://fastapi.tiangolo.com/) [![LangGraph](https://img.shields.io/badge/LangGraph-0.0.60-blue)](https://github.com/langchain-ai/langgraph) [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16%20+%20pgvector-336791?logo=postgresql)](https://github.com/pgvector/pgvector) [![BullMQ](https://img.shields.io/badge/BullMQ-5.7-red?logo=redis)](https://bullmq.io/) [![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yamin-H/ai-pr-reviewer-yamin.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yamin-H/ai-pr-reviewer-yamin/issues"
+  },
+  "homepage": "https://github.com/yamin-H/ai-pr-reviewer-yamin#readme"
+}
